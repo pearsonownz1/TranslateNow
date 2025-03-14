@@ -8,9 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Check, CreditCard, Lock, PaypalIcon } from "lucide-react";
+import { Check, CreditCard, Lock } from "lucide-react";
 import OrderSummary from "./OrderSummary";
 import StripePaymentForm from "./StripePaymentForm";
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "@/lib/stripe";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PaymentStepProps {
   onComplete?: () => void;
@@ -37,21 +40,50 @@ const PaymentStep = ({
 }: PaymentStepProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
-
-  const handlePayment = () => {
-    setIsProcessing(true);
-
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      onComplete();
-    }, 2000);
-  };
+  const { toast } = useToast();
 
   // Calculate tax and total
   const taxRate = 0.08;
   const taxAmount = orderDetails.price * taxRate;
   const totalPrice = orderDetails.price + taxAmount;
+  // Convert to cents for Stripe
+  const amountInCents = Math.round(totalPrice * 100);
+
+  const handlePayment = (paymentMethod?: any) => {
+    setIsProcessing(true);
+
+    // In a real app, you would send the payment method ID to your server
+    // to create a payment intent and complete the payment
+    console.log("Payment method:", paymentMethod);
+
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsProcessing(false);
+
+      toast({
+        title: "Payment successful",
+        description: `Your payment of ${totalPrice.toFixed(2)} has been processed successfully.`,
+      });
+
+      onComplete();
+    }, 2000);
+  };
+
+  const handlePayPalPayment = () => {
+    setIsProcessing(true);
+
+    // Simulate PayPal payment processing
+    setTimeout(() => {
+      setIsProcessing(false);
+
+      toast({
+        title: "PayPal payment successful",
+        description: `Your payment of ${totalPrice.toFixed(2)} has been processed successfully.`,
+      });
+
+      onComplete();
+    }, 2000);
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-sm">
@@ -109,10 +141,13 @@ const PaymentStep = ({
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="card">
-                  <StripePaymentForm
-                    onSubmit={handlePayment}
-                    isProcessing={isProcessing}
-                  />
+                  <Elements stripe={stripePromise}>
+                    <StripePaymentForm
+                      onSubmit={handlePayment}
+                      isProcessing={isProcessing}
+                      amount={amountInCents}
+                    />
+                  </Elements>
                 </TabsContent>
                 <TabsContent value="paypal">
                   <Card>
@@ -143,7 +178,7 @@ const PaymentStep = ({
                         Click the button below to pay with PayPal
                       </p>
                       <Button
-                        onClick={handlePayment}
+                        onClick={handlePayPalPayment}
                         disabled={isProcessing}
                         className="w-full bg-gray-900 hover:bg-gray-800"
                       >
@@ -172,7 +207,7 @@ const PaymentStep = ({
                             Processing...
                           </>
                         ) : (
-                          "Pay with PayPal"
+                          `Pay ${totalPrice.toFixed(2)} with PayPal`
                         )}
                       </Button>
                     </CardContent>
