@@ -19,9 +19,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { useAuth } from "@/context/AuthContext";
 
 interface DocumentAndLanguageStepProps {
-  onNext?: () => void;
+  onNext?: (data: {
+    documentType: string;
+    file: File | null;
+    sourceLanguage: string;
+    targetLanguage: string;
+    documentDetails: any;
+  }) => void;
   onDocumentTypeChange?: (documentType: string) => void;
   onDocumentUpload?: (file: File) => void;
   onSourceLanguageChange?: (language: string) => void;
@@ -62,6 +70,10 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
   const [sourceLanguage, setSourceLanguage] = useState(selectedSourceLanguage);
   const [targetLanguage, setTargetLanguage] = useState(selectedTargetLanguage);
   const [languageError, setLanguageError] = useState<string | null>(null);
+  const [documentDetails, setDocumentDetails] = useState<any>(null);
+
+  const { uploadFile, uploading, error } = useSupabaseStorage();
+  const { user } = useAuth();
 
   const documentTypes = [
     { id: "standard", name: "Standard Document", price: "$50" },
@@ -85,21 +97,48 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file) {
       setUploadStatus("error");
       setErrorMessage("Please select a file to upload");
       return;
     }
 
-    // Simulate upload process
-    setUploadStatus("uploading");
+    if (!user) {
+      setUploadStatus("error");
+      setErrorMessage("You must be logged in to upload documents");
+      return;
+    }
 
-    // Mock successful upload after 1.5 seconds
-    setTimeout(() => {
+    try {
+      setUploadStatus("uploading");
+
+      // Upload to Supabase Storage
+      const fileDetails = await uploadFile(file, "documents", user.id);
+
+      // Store document metadata in the database
+      const { data, error } = await supabase
+        .from("documents")
+        .insert({
+          user_id: user.id,
+          document_type: documentType,
+          file_path: fileDetails.filePath,
+          file_name: file.name,
+          file_size: file.size,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDocumentDetails(data);
       setUploadStatus("success");
       onDocumentUpload(file);
-    }, 1500);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setUploadStatus("error");
+      setErrorMessage(err instanceof Error ? err.message : "Upload failed");
+    }
   };
 
   const handleSourceLanguageChange = (value: string) => {
@@ -136,7 +175,13 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
       return;
     }
 
-    onNext();
+    onNext({
+      documentType,
+      file,
+      sourceLanguage,
+      targetLanguage,
+      documentDetails,
+    });
   };
 
   const selectedDocumentType = documentTypes.find(

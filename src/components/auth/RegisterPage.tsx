@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { supabase } from "@/lib/supabase-client";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../landing/Navbar";
 import Footer from "../landing/Footer";
@@ -25,39 +26,55 @@ const RegisterPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate registration process
-    setTimeout(() => {
-      setIsLoading(false);
-
-      if (email && password && name) {
-        // Store user info in localStorage (in a real app, you'd use proper auth)
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name,
-            isLoggedIn: true,
-          }),
-        );
-
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created",
-        });
-
-        navigate("/dashboard");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
-          description: "Please fill in all fields",
-        });
+    try {
+      if (!email || !password || !name) {
+        throw new Error("Please fill in all fields");
       }
-    }, 1500);
+
+      // Register with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // Create user profile in the users table
+      if (data.user) {
+        const { error: profileError } = await supabase.from("users").insert({
+          id: data.user.id,
+          email: email,
+          full_name: name,
+        });
+
+        if (profileError) throw profileError;
+      }
+
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description:
+          error instanceof Error ? error.message : "Registration failed",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

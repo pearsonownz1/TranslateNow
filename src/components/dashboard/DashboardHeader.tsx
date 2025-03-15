@@ -1,4 +1,5 @@
 import React from "react";
+import { supabase } from "@/lib/supabase-client";
 import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -24,17 +25,28 @@ const DashboardHeader = ({ user }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogout = () => {
-    // Clear user data from localStorage
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    try {
+      // Sign out with Supabase Auth
+      const { error } = await supabase.auth.signOut();
 
-    toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account",
-    });
+      if (error) throw error;
 
-    // Redirect to login page
-    navigate("/login");
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+
+      // Redirect to login page
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        variant: "destructive",
+        title: "Logout failed",
+        description: "There was a problem logging you out",
+      });
+    }
   };
 
   const getInitials = (name: string) => {

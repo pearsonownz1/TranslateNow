@@ -297,19 +297,49 @@ function Home() {
       {/* Header */}
       <header className="bg-gray-900 text-white py-4 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold">TranslateNow</h1>
+          <div className="flex items-center gap-2">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z"
+                fill="url(#paint0_linear)"
+              />
+              <path d="M22 10h-4v12h4V10z" fill="white" />
+              <path d="M14 10H10v12h4V10z" fill="white" />
+              <path d="M18 16a2 2 0 11-4 0 2 2 0 014 0z" fill="white" />
+              <defs>
+                <linearGradient
+                  id="paint0_linear"
+                  x1="2"
+                  y1="16"
+                  x2="30"
+                  y2="16"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stopColor="#4F46E5" />
+                  <stop offset="1" stopColor="#2563EB" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <h1 className="text-3xl font-bold">PingTranslate</h1>
+          </div>
         </div>
       </header>
 
       {/* Progress Indicator */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center py-2 px-6">
+          <div className="flex justify-between items-center py-2 px-6 overflow-x-auto">
             {steps.map((step, index) => (
               <div
                 key={step.id}
                 className={cn(
-                  "flex items-center",
+                  "flex items-center whitespace-nowrap px-2",
                   currentStep === step.id
                     ? "text-gray-900 font-medium"
                     : currentStep > step.id
@@ -442,7 +472,7 @@ function Home() {
       <footer className="bg-white border-t py-6 mt-12">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <div>© 2025 TranslateNow, LLC. All Rights Reserved</div>
+            <div>© 2025 PingTranslate, LLC. All Rights Reserved</div>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-gray-900">
                 Terms of Service

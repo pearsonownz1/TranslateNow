@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
 import { useNavigate, Outlet } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
@@ -16,22 +17,56 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.isLoggedIn) {
-          setUser(parsedUser);
+    // Check if user is logged in with Supabase Auth
+    const checkUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error || !data.user) {
+        navigate("/login");
+        return;
+      }
+
+      // Get user profile from the database
+      const { data: profile, error: profileError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError);
+        // If profile doesn't exist, create one
+        if (profileError.code === "PGRST116") {
+          const { error: insertError } = await supabase.from("users").insert({
+            id: data.user.id,
+            email: data.user.email,
+            full_name:
+              data.user.user_metadata.full_name ||
+              data.user.email.split("@")[0],
+          });
+
+          if (insertError) {
+            console.error("Error creating user profile:", insertError);
+            navigate("/login");
+            return;
+          }
         } else {
           navigate("/login");
+          return;
         }
-      } catch (error) {
-        navigate("/login");
       }
-    } else {
-      navigate("/login");
-    }
+
+      setUser({
+        name:
+          profile?.full_name ||
+          data.user.user_metadata.full_name ||
+          data.user.email.split("@")[0],
+        email: data.user.email || "",
+        isLoggedIn: true,
+      });
+    };
+
+    checkUser();
   }, [navigate]);
 
   if (!user) {

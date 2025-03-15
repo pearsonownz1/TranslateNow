@@ -32,9 +32,39 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            TranslateNow
-          </span>
+          <div className="flex items-center gap-2">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z"
+                fill="url(#paint0_linear)"
+              />
+              <path d="M22 10h-4v12h4V10z" fill="white" />
+              <path d="M14 10H10v12h4V10z" fill="white" />
+              <path d="M18 16a2 2 0 11-4 0 2 2 0 014 0z" fill="white" />
+              <defs>
+                <linearGradient
+                  id="paint0_linear"
+                  x1="2"
+                  y1="16"
+                  x2="30"
+                  y2="16"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stopColor="#4F46E5" />
+                  <stop offset="1" stopColor="#2563EB" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              PingTranslate
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}

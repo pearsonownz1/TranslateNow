@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { supabase } from "@/lib/supabase-client";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../landing/Navbar";
 import Footer from "../landing/Footer";
@@ -24,40 +25,39 @@ const LoginPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate authentication process
-    setTimeout(() => {
-      setIsLoading(false);
-
-      // For demo purposes, any login works
-      if (email && password) {
-        // Store user info in localStorage (in a real app, you'd use proper auth tokens)
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name: email.split("@")[0],
-            isLoggedIn: true,
-          }),
-        );
-
-        toast({
-          title: "Login successful",
-          description: "Welcome to your TranslateNow dashboard",
-        });
-
-        navigate("/dashboard");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: "Please enter both email and password",
-        });
+    try {
+      if (!email || !password) {
+        throw new Error("Please enter both email and password");
       }
-    }, 1500);
+
+      // Sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Login successful",
+        description: "Welcome to your TranslateNow dashboard",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description:
+          error instanceof Error ? error.message : "Authentication failed",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
