@@ -9,7 +9,173 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          certification_type: string | null
+          completed_date: string | null
+          created_at: string | null
+          delivery_method: string
+          document_id: string
+          estimated_delivery: string | null
+          id: string
+          order_number: string
+          service_level: string
+          source_language: string
+          status: string
+          subtotal: number
+          target_language: string
+          tax: number
+          total: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          certification_type?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          delivery_method: string
+          document_id: string
+          estimated_delivery?: string | null
+          id?: string
+          order_number: string
+          service_level: string
+          source_language: string
+          status?: string
+          subtotal: number
+          target_language: string
+          tax: number
+          total: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          certification_type?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          delivery_method?: string
+          document_id?: string
+          estimated_delivery?: string | null
+          id?: string
+          order_number?: string
+          service_level?: string
+          source_language?: string
+          status?: string
+          subtotal?: number
+          target_language?: string
+          tax?: number
+          total?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      translations: {
+        Row: {
+          certificate_file_path: string | null
+          created_at: string | null
+          id: string
+          order_id: string
+          translated_file_path: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          certificate_file_path?: string | null
+          created_at?: string | null
+          id?: string
+          order_id: string
+          translated_file_path?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          certificate_file_path?: string | null
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          translated_file_path?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

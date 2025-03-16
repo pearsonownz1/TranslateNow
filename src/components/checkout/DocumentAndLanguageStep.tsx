@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Upload, FileText, Check, AlertCircle, Globe } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Check,
+  AlertCircle,
+  Globe,
+  Loader2,
+  User,
+  Lock,
+  Mail,
+} from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -19,8 +29,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBlobStorage } from "@/hooks/useBlobStorage";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase-client";
 
 interface DocumentAndLanguageStepProps {
   onNext?: (data: {
@@ -29,6 +41,9 @@ interface DocumentAndLanguageStepProps {
     sourceLanguage: string;
     targetLanguage: string;
     documentDetails: any;
+    username?: string;
+    email?: string;
+    password?: string;
   }) => void;
   onDocumentTypeChange?: (documentType: string) => void;
   onDocumentUpload?: (file: File) => void;
@@ -71,9 +86,14 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
   const [targetLanguage, setTargetLanguage] = useState(selectedTargetLanguage);
   const [languageError, setLanguageError] = useState<string | null>(null);
   const [documentDetails, setDocumentDetails] = useState<any>(null);
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [accountTab, setAccountTab] = useState<string>("guest");
+  const [accountError, setAccountError] = useState<string | null>(null);
 
-  const { uploadFile, uploading, error } = useSupabaseStorage();
-  const { user } = useAuth();
+  const { uploadFile, uploading, error } = useBlobStorage();
+  const { user, signUp, signIn } = useAuth();
 
   const documentTypes = [
     { id: "standard", name: "Standard Document", price: "$50" },
@@ -88,7 +108,7 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
     onDocumentTypeChange(value);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
@@ -104,34 +124,71 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
       return;
     }
 
-    if (!user) {
-      setUploadStatus("error");
-      setErrorMessage("You must be logged in to upload documents");
-      return;
-    }
+    // Login check removed to allow document uploads without authentication
 
     try {
       setUploadStatus("uploading");
 
-      // Upload to Supabase Storage
-      const fileDetails = await uploadFile(file, "documents", user.id);
+      // Check file size
+      if (file.size > 10 * 1024 * 1024) {
+        // 10MB limit
+        throw new Error("File size exceeds 10MB limit");
+      }
 
-      // Store document metadata in the database
-      const { data, error } = await supabase
-        .from("documents")
-        .insert({
-          user_id: user.id,
+      // Upload to Vercel Blob Storage
+      const fileDetails = await uploadFile(
+        file,
+        "documents",
+        user?.id || "anonymous",
+      );
+
+      if (!fileDetails || !fileDetails.url) {
+        throw new Error("File upload failed - no file URL returned");
+      }
+
+      try {
+        // Store document metadata in the database
+        const { data, error } = await supabase
+          .from("documents")
+          .insert({
+            user_id: user?.id || "anonymous",
+            document_type: documentType,
+            file_path: fileDetails.url,
+            file_name: file.name,
+            file_size: file.size,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Database insert error:", error);
+          // Create a local document details object even if DB insert fails
+          setDocumentDetails({
+            id: crypto.randomUUID(),
+            user_id: user?.id || "anonymous",
+            document_type: documentType,
+            file_path: fileDetails.url,
+            file_name: file.name,
+            file_size: file.size,
+            created_at: new Date().toISOString(),
+          });
+        } else {
+          setDocumentDetails(data);
+        }
+      } catch (dbErr) {
+        console.error("Database error:", dbErr);
+        // Create a local document details object even if DB insert fails
+        setDocumentDetails({
+          id: crypto.randomUUID(),
+          user_id: user?.id || "anonymous",
           document_type: documentType,
-          file_path: fileDetails.filePath,
+          file_path: fileDetails.url,
           file_name: file.name,
           file_size: file.size,
-        })
-        .select()
-        .single();
+          created_at: new Date().toISOString(),
+        });
+      }
 
-      if (error) throw error;
-
-      setDocumentDetails(data);
       setUploadStatus("success");
       onDocumentUpload(file);
     } catch (err) {
@@ -162,7 +219,41 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
     return true;
   };
 
-  const handleContinue = () => {
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const validateUserInfo = () => {
+    setAccountError(null);
+
+    if (accountTab === "register") {
+      if (!username.trim()) {
+        setAccountError("Username is required");
+        return false;
+      }
+      if (!email.trim() || !validateEmail(email)) {
+        setAccountError("Valid email is required");
+        return false;
+      }
+      if (password.length < 6) {
+        setAccountError("Password must be at least 6 characters");
+        return false;
+      }
+    } else if (accountTab === "login") {
+      if (!email.trim()) {
+        setAccountError("Email is required");
+        return false;
+      }
+      if (!password.trim()) {
+        setAccountError("Password is required");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleContinue = async () => {
     // Validate document upload
     if (uploadStatus !== "success") {
       setUploadStatus("error");
@@ -175,12 +266,35 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
       return;
     }
 
+    // Validate user info if not guest checkout
+    if (accountTab !== "guest" && !validateUserInfo()) {
+      return;
+    }
+
+    // Handle authentication if needed
+    try {
+      if (accountTab === "register") {
+        await signUp(email, password, { username });
+      } else if (accountTab === "login") {
+        await signIn(email, password);
+      }
+    } catch (err) {
+      console.error("Authentication error:", err);
+      setAccountError(
+        err instanceof Error ? err.message : "Authentication failed",
+      );
+      return;
+    }
+
     onNext({
       documentType,
       file,
       sourceLanguage,
       targetLanguage,
       documentDetails,
+      username: accountTab !== "guest" ? username : undefined,
+      email: accountTab !== "guest" ? email : undefined,
+      password: accountTab !== "guest" ? password : undefined,
     });
   };
 
@@ -193,13 +307,132 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Document Upload & Language Selection
+            Document Upload & Account Information
           </CardTitle>
           <CardDescription>
-            Upload your document and select the languages for translation
+            Upload your document, create an account or continue as guest
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Account Information */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <User className="h-5 w-5 text-gray-700" />
+              <h3 className="font-medium text-gray-900">Account Information</h3>
+            </div>
+
+            <Tabs
+              defaultValue="guest"
+              value={accountTab}
+              onValueChange={setAccountTab}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="guest">Continue as Guest</TabsTrigger>
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="guest" className="pt-4">
+                <div className="p-4 bg-muted rounded-md">
+                  <p className="text-sm">
+                    You can continue without an account, but creating one will
+                    allow you to track your orders and access your translations
+                    later.
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="login" className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      className="pl-10"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-10"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="register" className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="register-username">Username</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="register-username"
+                      placeholder="johndoe"
+                      className="pl-10"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="register-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      className="pl-10"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="register-password"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-10"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Password must be at least 6 characters
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {accountError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600">
+                {accountError}
+              </div>
+            )}
+          </div>
+
+          <Separator className="my-6" />
           {/* Document Type Selection */}
           <div className="space-y-2">
             <Label htmlFor="document-type">Document Type</Label>

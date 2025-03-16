@@ -15,20 +15,42 @@ if (!supabaseAnonKey) {
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Helper functions for common operations
+// This function is kept for backward compatibility
+// For new uploads, use the AWS S3 client from aws-client.ts
 export const uploadDocument = async (file: File, userId: string) => {
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-  const filePath = `${userId}/${fileName}`;
+  // Import dynamically to avoid circular dependencies
+  const { uploadToBlob } = await import("./blob-client");
 
-  const { data, error } = await supabase.storage
-    .from("documents")
-    .upload(filePath, file);
+  try {
+    // Use Vercel Blob for document uploads
+    return await uploadToBlob(file, userId);
+  } catch (error) {
+    console.error(
+      "Vercel Blob upload failed, falling back to Supabase:",
+      error,
+    );
 
-  if (error) {
-    throw error;
+    // Fallback to Supabase storage if Vercel Blob fails
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { data, error: supabaseError } = await supabase.storage
+      .from("documents")
+      .upload(filePath, file);
+
+    if (supabaseError) {
+      throw supabaseError;
+    }
+
+    return {
+      filePath,
+      fileName,
+      fileSize: file.size,
+      url: supabase.storage.from("documents").getPublicUrl(filePath).data
+        .publicUrl,
+    };
   }
-
-  return { filePath, fileName, fileSize: file.size };
 };
 
 export const createOrder = async (orderData: any) => {

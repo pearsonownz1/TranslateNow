@@ -67,42 +67,55 @@ const StripePaymentForm = ({
   };
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md border border-gray-200">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
+          <Lock className="h-5 w-5 text-green-600" />
           Payment Details
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <div className="border rounded-md p-3">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="border-2 border-gray-200 rounded-md p-4 bg-white shadow-sm">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Card Information
+              </label>
               <CardElement options={cardElementOptions} />
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <Lock className="h-4 w-4 text-green-600" />
+              <span>Your card details are encrypted and secure</span>
             </div>
           </div>
 
-          {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
+          {error && (
+            <div className="text-sm text-red-500 mt-2 p-2 bg-red-50 rounded border border-red-200">
+              {error}
+            </div>
+          )}
 
           <div className="pt-2">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3"
               disabled={!stripe || isProcessing}
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Processing Payment...
                 </>
               ) : (
-                `Pay $${(amount / 100).toFixed(2)}`
+                `Pay ${(amount / 100).toFixed(2)}`
               )}
             </Button>
           </div>
 
           <div className="flex items-center justify-center text-xs text-muted-foreground pt-2">
-            <Lock className="h-3 w-3 mr-1" />
-            <span>Payments are secure and encrypted</span>
+            <Lock className="h-3 w-3 mr-1 text-green-600" />
+            <span>Payments are secure and encrypted with SSL</span>
           </div>
         </form>
       </CardContent>

@@ -1,8 +1,9 @@
-import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Home from "./components/home";
 import LandingPage from "./components/landing/LandingPage";
 import routes from "tempo-routes";
+import { useAuth } from "./context/AuthContext";
 
 // Lazy load checkout components
 const ContactInfoStep = lazy(
@@ -62,6 +63,23 @@ const AdminOrderDetailsPage = lazy(
 );
 
 function App() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Protected routes logic
+  useEffect(() => {
+    if (!loading) {
+      const isProtectedRoute =
+        location.pathname.startsWith("/dashboard") ||
+        location.pathname.startsWith("/admin");
+
+      if (isProtectedRoute && !user) {
+        navigate("/login");
+      }
+    }
+  }, [user, loading, navigate, location]);
+
   return (
     <Suspense
       fallback={

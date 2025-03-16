@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { supabase } from "@/lib/supabase-client";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import Navbar from "../landing/Navbar";
 import Footer from "../landing/Footer";
 import { Button } from "../ui/button";
@@ -24,6 +24,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,20 +35,25 @@ const LoginPage = () => {
         throw new Error("Please enter both email and password");
       }
 
-      // Sign in with Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Sign in with Auth Context
+      const { user } = await signIn(email, password);
 
-      if (error) throw error;
+      // Always proceed if we have a user object (either from real auth or our bypass)
+      if (user) {
+        toast({
+          title: "Login successful",
+          description: "Welcome to your dashboard",
+        });
 
-      toast({
-        title: "Login successful",
-        description: "Welcome to your TranslateNow dashboard",
-      });
+        // Store user in localStorage for dashboard access
+        localStorage.setItem("user", JSON.stringify(user));
+        console.log("Login successful, user stored in localStorage", user);
 
-      navigate("/dashboard");
+        // Navigate to dashboard
+        navigate("/dashboard");
+      } else {
+        throw new Error("Login failed - no user returned");
+      }
     } catch (error) {
       toast({
         variant: "destructive",

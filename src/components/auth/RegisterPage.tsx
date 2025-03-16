@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { supabase } from "@/lib/supabase-client";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import Navbar from "../landing/Navbar";
 import Footer from "../landing/Footer";
 import { Button } from "../ui/button";
@@ -25,9 +25,27 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp } = useAuth();
+
+  // Track form submission to prevent multiple rapid submissions
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent multiple rapid submissions
+    const now = Date.now();
+    if (now - lastSubmitTime < 3000) {
+      // 3 second cooldown
+      toast({
+        variant: "destructive",
+        title: "Please wait",
+        description: "Please wait a moment before trying again",
+      });
+      return;
+    }
+
+    setLastSubmitTime(now);
     setIsLoading(true);
 
     try {
@@ -35,45 +53,52 @@ const RegisterPage = () => {
         throw new Error("Please fill in all fields");
       }
 
-      // Register with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      // Create user profile in the users table
-      if (data.user) {
-        const { error: profileError } = await supabase.from("users").insert({
-          id: data.user.id,
-          email: email,
-          full_name: name,
-        });
-
-        if (profileError) throw profileError;
+      if (password.length < 6) {
+        throw new Error("Password must be at least 6 characters long");
       }
 
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created",
-      });
+      // Register with Auth Context
+      const result = await signUp(email, password, name);
 
-      navigate("/dashboard");
+      // Check if email confirmation is required
+      const requiresEmailConfirmation = !result?.session;
+
+      if (requiresEmailConfirmation) {
+        toast({
+          title: "Verification email sent",
+          description: "Please check your email to verify your account",
+        });
+        navigate("/login?verified=pending");
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Your account has been created",
+        });
+        navigate("/dashboard");
+      }
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Registration failed";
+
+      // Check if it's a rate limit error
+      const isRateLimit =
+        errorMessage.toLowerCase().includes("rate limit") ||
+        errorMessage.toLowerCase().includes("too many") ||
+        errorMessage.toLowerCase().includes("wait");
+
       toast({
         variant: "destructive",
-        title: "Registration failed",
-        description:
-          error instanceof Error ? error.message : "Registration failed",
+        title: isRateLimit ? "Too Many Attempts" : "Registration failed",
+        description: errorMessage,
       });
+
+      // If it's a rate limit error, disable the form for a few seconds
+      if (isRateLimit) {
+        setIsLoading(true);
+        setTimeout(() => setIsLoading(false), 5000);
+      }
     } finally {
-      setIsLoading(false);
+      if (!isLoading) setIsLoading(false);
     }
   };
 
@@ -89,7 +114,7 @@ const RegisterPage = () => {
                   Create an account
                 </CardTitle>
                 <CardDescription className="text-center">
-                  Enter your details to create your TranslateNow account
+                  Enter your details to create your PingTranslate account
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
