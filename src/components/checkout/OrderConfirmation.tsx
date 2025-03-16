@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Calendar, FileText, Clock, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 interface OrderConfirmationProps {
   orderNumber?: string;
@@ -24,6 +25,37 @@ const OrderConfirmation = ({
   estimatedDelivery = "May 15, 2023",
   customerEmail = "customer@example.com",
 }: OrderConfirmationProps) => {
+  useEffect(() => {
+    // Send order confirmation email when component mounts
+    const sendEmail = async () => {
+      try {
+        await sendOrderConfirmationEmail({
+          to: customerEmail,
+          orderNumber,
+          documentType,
+          sourceLanguage,
+          targetLanguage,
+          serviceLevel,
+          totalPrice,
+          estimatedDelivery,
+        });
+        console.log("Order confirmation email sent successfully");
+      } catch (error) {
+        console.error("Failed to send order confirmation email:", error);
+      }
+    };
+
+    sendEmail();
+  }, [
+    customerEmail,
+    orderNumber,
+    documentType,
+    sourceLanguage,
+    targetLanguage,
+    serviceLevel,
+    totalPrice,
+    estimatedDelivery,
+  ]);
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <div className="flex flex-col items-center text-center mb-8">

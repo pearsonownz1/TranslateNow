@@ -63,6 +63,18 @@ const RegisterPage = () => {
       // Check if email confirmation is required
       const requiresEmailConfirmation = !result?.session;
 
+      // Send welcome email
+      try {
+        const { sendRegistrationEmail } = await import("@/lib/email");
+        await sendRegistrationEmail({
+          to: email,
+          name: name,
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Continue with registration flow even if email fails
+      }
+
       if (requiresEmailConfirmation) {
         toast({
           title: "Verification email sent",

@@ -27,6 +27,7 @@ import { Textarea } from "../ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useToast } from "../ui/use-toast";
 import AdminUploadTranslation from "./AdminUploadTranslation";
+import { sendOrderCompletionEmail } from "@/lib/email";
 
 const AdminOrderDetailsPage = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -48,7 +49,7 @@ const AdminOrderDetailsPage = () => {
     }, 500);
   }, [orderId]);
 
-  const handleCompleteOrder = () => {
+  const handleCompleteOrder = async () => {
     if (order) {
       const updatedOrder = {
         ...order,
@@ -67,8 +68,27 @@ const AdminOrderDetailsPage = () => {
         description: `Order ${order.id} has been marked as completed and the customer has been notified.`,
       });
 
-      // In a real app, this would trigger an email notification to the customer
-      console.log(`Email notification sent to customer for order ${order.id}`);
+      // Send email notification to customer
+      try {
+        // In a real app, this would use a real download link
+        const downloadLink = `https://pingtranslate.com/dashboard/orders/${order.id}/download`;
+
+        await sendOrderCompletionEmail({
+          to: "john@example.com", // In a real app, this would be order.customerEmail
+          orderNumber: order.id,
+          documentType: order.documentType,
+          downloadLink: downloadLink,
+        });
+
+        console.log(
+          `Email notification sent to customer for order ${order.id}`,
+        );
+      } catch (error) {
+        console.error(
+          `Failed to send completion email for order ${order.id}:`,
+          error,
+        );
+      }
     }
   };
 
@@ -86,17 +106,39 @@ const AdminOrderDetailsPage = () => {
     }
   };
 
-  const handleUploadTranslation = (file: File) => {
+  const handleUploadTranslation = async (file: File) => {
     setTranslatedDocument(file);
 
     // If the order is not already completed, mark it as completed
     if (order.status !== "completed") {
-      handleCompleteOrder();
+      await handleCompleteOrder();
     } else {
       toast({
         title: "Translation uploaded",
         description: `New translation has been uploaded for order ${order.id} and the customer has been notified.`,
       });
+
+      // Send email notification about the new upload
+      try {
+        // In a real app, this would use a real download link
+        const downloadLink = `https://pingtranslate.com/dashboard/orders/${order.id}/download`;
+
+        await sendOrderCompletionEmail({
+          to: "john@example.com", // In a real app, this would be order.customerEmail
+          orderNumber: order.id,
+          documentType: order.documentType,
+          downloadLink: downloadLink,
+        });
+
+        console.log(
+          `Email notification sent to customer for updated translation ${order.id}`,
+        );
+      } catch (error) {
+        console.error(
+          `Failed to send update email for order ${order.id}:`,
+          error,
+        );
+      }
     }
   };
 
