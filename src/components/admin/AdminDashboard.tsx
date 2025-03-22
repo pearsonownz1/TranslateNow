@@ -18,6 +18,8 @@ import {
   DollarSign,
 } from "lucide-react";
 import { mockOrders } from "../dashboard/mockData";
+import TestUsersPanel from "./TestUsersPanel";
+import CreateAdminUserForm from "./CreateAdminUserForm";
 
 const AdminDashboard = () => {
   // Calculate some statistics
@@ -104,6 +106,8 @@ const AdminDashboard = () => {
           <TabsTrigger value="recent">Recent Orders</TabsTrigger>
           <TabsTrigger value="users">Recent Users</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="test-users">Test Users</TabsTrigger>
+          <TabsTrigger value="admin-users">Admin Users</TabsTrigger>
         </TabsList>
         <TabsContent value="recent" className="space-y-4">
           <Card>
@@ -272,6 +276,34 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="test-users">
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Users Management</CardTitle>
+              <CardDescription>
+                Create and manage test users without hitting rate limits
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TestUsersPanel />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="admin-users">
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Users Management</CardTitle>
+              <CardDescription>
+                Create users with administrative privileges
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-8">
+                <CreateAdminUserForm />
               </div>
             </CardContent>
           </Card>

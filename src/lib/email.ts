@@ -1,8 +1,5 @@
-import { Resend } from "resend";
-
-// Initialize Resend with API key
-const resendApiKey = "re_HJMiqSNz_ADPQA6epMcs1NLSuXzeRw6Zr";
-const resend = new Resend(resendApiKey);
+// Email sending utility functions
+// These now use our API route instead of calling Resend directly
 
 // Email templates
 export const sendOrderConfirmationEmail = async ({
@@ -25,11 +22,16 @@ export const sendOrderConfirmationEmail = async ({
   estimatedDelivery: string;
 }) => {
   try {
-    const data = await resend.emails.send({
-      from: "PingTranslate <notifications@pingtranslate.com>",
-      to: [to],
-      subject: `Order Confirmation: ${orderNumber}`,
-      html: `
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "PingTranslate <notifications@mail.pingtranslate.com>",
+        to: [to],
+        subject: `Order Confirmation: ${orderNumber}`,
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
             <h1 style="color: #3b82f6;">Your Translation Order is Confirmed</h1>
@@ -59,13 +61,15 @@ export const sendOrderConfirmationEmail = async ({
           
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
             <p>© 2023 PingTranslate. All rights reserved.</p>
-            <p>If you have any questions, please contact our support team at support@pingtranslate.com</p>
+            <p>If you have any questions, please contact our support team at support@mail.pingtranslate.com</p>
           </div>
         </div>
       `,
+      }),
     });
 
-    return { success: true, data };
+    const data = await response.json();
+    return { success: response.ok, data };
   } catch (error) {
     console.error("Failed to send order confirmation email:", error);
     return { success: false, error };
@@ -80,11 +84,16 @@ export const sendRegistrationEmail = async ({
   name: string;
 }) => {
   try {
-    const data = await resend.emails.send({
-      from: "PingTranslate <welcome@pingtranslate.com>",
-      to: [to],
-      subject: "Welcome to PingTranslate",
-      html: `
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "PingTranslate <welcome@mail.pingtranslate.com>",
+        to: [to],
+        subject: "Welcome to PingTranslate",
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
             <h1 style="color: #3b82f6;">Welcome to PingTranslate!</h1>
@@ -110,12 +119,19 @@ export const sendRegistrationEmail = async ({
           
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
             <p>© 2023 PingTranslate. All rights reserved.</p>
-            <p>If you have any questions, please contact our support team at support@pingtranslate.com</p>
+            <p>If you have any questions, please contact our support team at support@mail.pingtranslate.com</p>
           </div>
         </div>
       `,
+      }),
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
     return { success: true, data };
   } catch (error) {
     console.error("Failed to send registration email:", error);
@@ -135,11 +151,16 @@ export const sendOrderCompletionEmail = async ({
   downloadLink: string;
 }) => {
   try {
-    const data = await resend.emails.send({
-      from: "PingTranslate <notifications@pingtranslate.com>",
-      to: [to],
-      subject: `Your Translation is Ready: ${orderNumber}`,
-      html: `
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "PingTranslate <notifications@mail.pingtranslate.com>",
+        to: [to],
+        subject: `Your Translation is Ready: ${orderNumber}`,
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
             <h1 style="color: #3b82f6;">Your Translation is Ready!</h1>
@@ -167,13 +188,15 @@ export const sendOrderCompletionEmail = async ({
           
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
             <p>© 2023 PingTranslate. All rights reserved.</p>
-            <p>If you have any questions, please contact our support team at support@pingtranslate.com</p>
+            <p>If you have any questions, please contact our support team at support@mail.pingtranslate.com</p>
           </div>
         </div>
       `,
+      }),
     });
 
-    return { success: true, data };
+    const data = await response.json();
+    return { success: response.ok, data };
   } catch (error) {
     console.error("Failed to send order completion email:", error);
     return { success: false, error };
@@ -188,11 +211,16 @@ export const sendPasswordResetEmail = async ({
   resetLink: string;
 }) => {
   try {
-    const data = await resend.emails.send({
-      from: "PingTranslate <security@pingtranslate.com>",
-      to: [to],
-      subject: "Reset Your PingTranslate Password",
-      html: `
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "PingTranslate <security@mail.pingtranslate.com>",
+        to: [to],
+        subject: "Reset Your PingTranslate Password",
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
             <h1 style="color: #3b82f6;">Reset Your Password</h1>
@@ -215,13 +243,15 @@ export const sendPasswordResetEmail = async ({
           
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
             <p>© 2023 PingTranslate. All rights reserved.</p>
-            <p>If you have any questions, please contact our support team at support@pingtranslate.com</p>
+            <p>If you have any questions, please contact our support team at support@mail.pingtranslate.com</p>
           </div>
         </div>
       `,
+      }),
     });
 
-    return { success: true, data };
+    const data = await response.json();
+    return { success: response.ok, data };
   } catch (error) {
     console.error("Failed to send password reset email:", error);
     return { success: false, error };

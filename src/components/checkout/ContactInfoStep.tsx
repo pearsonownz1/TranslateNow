@@ -18,58 +18,10 @@ import { Lock, Shield, Award } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const contactFormSchema = z
-  .object({
-    fullName: z.string().min(2, "Full name is required"),
-    email: z.string().email("Invalid email address"),
-    accountType: z.enum(["guest", "login", "register"]).default("guest"),
-    password: z.string().optional(),
-    confirmPassword: z.string().optional(),
-    terms: z.boolean().optional(),
-  })
-  .refine(
-    (data) => {
-      if (
-        data.accountType === "register" &&
-        (!data.password || data.password.length < 6)
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Password must be at least 6 characters",
-      path: ["password"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (
-        data.accountType === "register" &&
-        data.password !== data.confirmPassword
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Passwords do not match",
-      path: ["confirmPassword"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.accountType === "register" && !data.terms) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "You must agree to the terms and conditions",
-      path: ["terms"],
-    },
-  );
-
+const contactFormSchema = z.object({
+  fullName: z.string().min(2, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+});
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 interface ContactInfoStepProps {
@@ -87,25 +39,15 @@ const ContactInfoStep = ({
     email: "",
   },
 }: ContactInfoStepProps) => {
-  const [accountType, setAccountType] = useState<
-    "guest" | "login" | "register"
-  >("guest");
-
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       ...defaultValues,
-      accountType: "guest",
     },
   });
 
   const onSubmit = (data: ContactFormValues) => {
     onNext(data);
-  };
-
-  const handleAccountTypeChange = (value: "guest" | "login" | "register") => {
-    setAccountType(value);
-    form.setValue("accountType", value);
   };
 
   return (
@@ -124,17 +66,6 @@ const ContactInfoStep = ({
           <Card>
             <CardHeader>
               <CardTitle>Contact Information</CardTitle>
-              <Tabs
-                value={accountType}
-                onValueChange={handleAccountTypeChange}
-                className="w-full mt-4"
-              >
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="guest">Continue as Guest</TabsTrigger>
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="register">Register</TabsTrigger>
-                </TabsList>
-              </Tabs>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -176,87 +107,6 @@ const ContactInfoStep = ({
                       </FormItem>
                     )}
                   />
-
-                  {(accountType === "login" || accountType === "register") && (
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                            />
-                          </FormControl>
-                          {accountType === "register" && (
-                            <FormDescription>
-                              Password must be at least 6 characters
-                            </FormDescription>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {accountType === "register" && (
-                    <>
-                      <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="password"
-                                placeholder="••••••••"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="terms"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>
-                                I agree to the{" "}
-                                <a
-                                  href="#"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Terms of Service
-                                </a>{" "}
-                                and{" "}
-                                <a
-                                  href="#"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Privacy Policy
-                                </a>
-                              </FormLabel>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    </>
-                  )}
 
                   <div className="pt-4">
                     <Button type="submit" className="w-full md:w-auto">
@@ -314,15 +164,6 @@ const ContactInfoStep = ({
                   </p>
                 </div>
               </div>
-            </div>
-
-            <div className="pt-4">
-              <p className="text-sm text-gray-500">
-                Already have an account? Please{" "}
-                <a href="#" className="text-gray-900 hover:underline">
-                  Sign In
-                </a>
-              </p>
             </div>
           </div>
         </div>

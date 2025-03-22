@@ -75,8 +75,6 @@ function Home() {
       contactInfo: {
         fullName: data.fullName,
         email: data.email,
-        accountType: data.accountType,
-        password: data.password,
       },
     });
     goToNextStep();

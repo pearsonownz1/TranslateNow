@@ -45,10 +45,6 @@ const LoginPage = () => {
           description: "Welcome to your dashboard",
         });
 
-        // Store user in localStorage for dashboard access
-        localStorage.setItem("user", JSON.stringify(user));
-        console.log("Login successful, user stored in localStorage", user);
-
         // Navigate to dashboard
         navigate("/dashboard");
       } else {

@@ -35,8 +35,8 @@ const RegisterPage = () => {
 
     // Prevent multiple rapid submissions
     const now = Date.now();
-    if (now - lastSubmitTime < 3000) {
-      // 3 second cooldown
+    if (now - lastSubmitTime < 5000) {
+      // 5 second cooldown
       toast({
         variant: "destructive",
         title: "Please wait",
@@ -63,17 +63,7 @@ const RegisterPage = () => {
       // Check if email confirmation is required
       const requiresEmailConfirmation = !result?.session;
 
-      // Send welcome email
-      try {
-        const { sendRegistrationEmail } = await import("@/lib/email");
-        await sendRegistrationEmail({
-          to: email,
-          name: name,
-        });
-      } catch (emailError) {
-        console.error("Failed to send welcome email:", emailError);
-        // Continue with registration flow even if email fails
-      }
+      // No email sending on registration
 
       if (requiresEmailConfirmation) {
         toast({
@@ -94,6 +84,7 @@ const RegisterPage = () => {
 
       // Check if it's a rate limit error
       const isRateLimit =
+        error.name === "RateLimitError" ||
         errorMessage.toLowerCase().includes("rate limit") ||
         errorMessage.toLowerCase().includes("too many") ||
         errorMessage.toLowerCase().includes("wait");
@@ -104,10 +95,10 @@ const RegisterPage = () => {
         description: errorMessage,
       });
 
-      // If it's a rate limit error, disable the form for a few seconds
+      // If it's a rate limit error, disable the form for a longer period
       if (isRateLimit) {
         setIsLoading(true);
-        setTimeout(() => setIsLoading(false), 5000);
+        setTimeout(() => setIsLoading(false), 10000); // 10 seconds cooldown
       }
     } finally {
       if (!isLoading) setIsLoading(false);

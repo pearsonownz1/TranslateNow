@@ -143,10 +143,6 @@ const Navbar = () => {
             <Link to="/contact">Contact</Link>
           </Button>
 
-          <Button variant="ghost" asChild>
-            <Link to="/login">Login</Link>
-          </Button>
-
           <Button
             asChild
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
@@ -232,9 +228,6 @@ const Navbar = () => {
                 </Link>
                 <Link to="/contact" className="font-medium hover:text-gray-900">
                   Contact
-                </Link>
-                <Link to="/login" className="font-medium hover:text-gray-900">
-                  Login
                 </Link>
 
                 <Button
