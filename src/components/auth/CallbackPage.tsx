@@ -18,6 +18,14 @@ const CallbackPage = () => {
           return;
         }
 
+        // Get the state from URL parameters
+        const state = searchParams.get("state");
+        if (!state) {
+          console.error("No state parameter found in URL");
+          navigate("/login", { replace: true });
+          return;
+        }
+
         // Handle the callback
         const result = await handleRedirectCallback();
         console.log("Auth0 callback result:", result);

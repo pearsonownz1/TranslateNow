@@ -5,8 +5,11 @@ export const auth0Config = {
   useRefreshTokens: true,
   authorizationParams: {
     redirect_uri: import.meta.env.PROD 
-      ? "https://pingtranslate.com/callback"
+      ? "https://www.pingtranslate.com/callback"
       : "http://localhost:5173/callback",
     scope: "openid profile email",
+  },
+  onRedirectCallback: (appState: any) => {
+    console.log("Auth0 redirect callback state:", appState);
   },
 }; 
