@@ -35,6 +35,7 @@ const ResourcesPage = lazy(
 const ContactPage = lazy(() => import("./components/contact/ContactPage"));
 const LoginPage = lazy(() => import("./components/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./components/auth/RegisterPage"));
+const CallbackPage = lazy(() => import("./components/auth/CallbackPage"));
 const QuotePage = lazy(() => import("./components/quote/QuotePage"));
 
 // Dashboard components
@@ -82,6 +83,7 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/callback" element={<CallbackPage />} />
           <Route path="/quote" element={<QuotePage />} />
 
           {/* Dashboard routes */}
