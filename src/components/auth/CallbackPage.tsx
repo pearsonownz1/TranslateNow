@@ -26,20 +26,28 @@ const CallbackPage = () => {
           return;
         }
 
+        // Log the current state for debugging
+        console.log("Current URL state:", state);
+        console.log("Current URL parameters:", Object.fromEntries(searchParams.entries()));
+
         // Handle the callback
         const result = await handleRedirectCallback();
         console.log("Auth0 callback result:", result);
         
-        // Check if we have a return URL in appState
-        const appState = result?.appState || {};
-        const returnTo = appState.returnTo || "/dashboard";
-        
-        // Add a small delay to ensure Auth0 state is updated
+        // Always redirect to dashboard after successful authentication
         setTimeout(() => {
-          navigate(returnTo, { replace: true });
+          navigate("/dashboard", { replace: true });
         }, 100);
       } catch (error) {
         console.error("Error handling callback:", error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error("Error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
         navigate("/login", { replace: true });
       }
     };

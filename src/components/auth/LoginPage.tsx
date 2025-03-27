@@ -24,7 +24,10 @@ const LoginPage = () => {
   const handleLogin = async () => {
     try {
       await loginWithRedirect({
-        appState: { returnTo: "/dashboard" }
+        appState: { 
+          returnTo: "/dashboard",
+          targetUrl: "/dashboard"
+        }
       });
     } catch (error) {
       console.error("Login error:", error);

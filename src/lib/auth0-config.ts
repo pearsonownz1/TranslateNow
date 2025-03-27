@@ -11,5 +11,6 @@ export const auth0Config = {
   },
   onRedirectCallback: (appState: any) => {
     console.log("Auth0 redirect callback state:", appState);
+    return appState;
   },
 }; 
