@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,17 +24,14 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ user }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useAuth0();
 
   const handleLogout = () => {
-    // Clear user data from localStorage
-    localStorage.removeItem("user");
-
+    logout({ logoutParams: { returnTo: window.location.origin } });
     toast({
       title: "Logged out successfully",
       description: "You have been logged out of your account",
     });
-
-    // Redirect to login page
     navigate("/login");
   };
 

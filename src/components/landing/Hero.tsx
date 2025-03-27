@@ -82,40 +82,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-
-      {/* Trusted by logos */}
-      <div className="container mx-auto px-4 mt-20">
-        <p className="text-center text-gray-500 mb-6">
-          Trusted by organizations worldwide
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
-          <img
-            src="https://api.dicebear.com/7.x/initials/svg?seed=USCIS&backgroundColor=gray"
-            alt="USCIS"
-            className="h-8"
-          />
-          <img
-            src="https://api.dicebear.com/7.x/initials/svg?seed=Harvard&backgroundColor=gray"
-            alt="Harvard"
-            className="h-8"
-          />
-          <img
-            src="https://api.dicebear.com/7.x/initials/svg?seed=NYU&backgroundColor=gray"
-            alt="NYU"
-            className="h-8"
-          />
-          <img
-            src="https://api.dicebear.com/7.x/initials/svg?seed=Stanford&backgroundColor=gray"
-            alt="Stanford"
-            className="h-8"
-          />
-          <img
-            src="https://api.dicebear.com/7.x/initials/svg?seed=Google&backgroundColor=gray"
-            alt="Google"
-            className="h-8"
-          />
-        </div>
-      </div>
     </div>
   );
 };

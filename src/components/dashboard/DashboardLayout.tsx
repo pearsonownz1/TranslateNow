@@ -1,40 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardHeader from "./DashboardHeader";
 
-interface User {
-  name: string;
-  email: string;
-  isLoggedIn: boolean;
-}
-
 const DashboardLayout = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { isAuthenticated, isLoading, user, loginWithRedirect } = useAuth0();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.isLoggedIn) {
-          setUser(parsedUser);
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        navigate("/login");
-      }
-    } else {
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  if (!user) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -42,9 +18,14 @@ const DashboardLayout = () => {
     );
   }
 
+  if (!isAuthenticated) {
+    loginWithRedirect();
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={{ name: user?.name || "", email: user?.email || "" }} />
 
       <div className="flex">
         <DashboardSidebar />

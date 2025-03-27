@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import Navbar from "../landing/Navbar";
 import Footer from "../landing/Footer";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import {
   Card,
   CardContent,
@@ -12,52 +12,30 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { Checkbox } from "../ui/checkbox";
 import { Separator } from "../ui/separator";
 import { useToast } from "../ui/use-toast";
 import { Loader2 } from "lucide-react";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { loginWithRedirect, isLoading } = useAuth0();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate authentication process
-    setTimeout(() => {
-      setIsLoading(false);
-
-      // For demo purposes, any login works
-      if (email && password) {
-        // Store user info in localStorage (in a real app, you'd use proper auth tokens)
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name: email.split("@")[0],
-            isLoggedIn: true,
-          }),
-        );
-
-        toast({
-          title: "Login successful",
-          description: "Welcome to your TranslateNow dashboard",
-        });
-
-        navigate("/dashboard");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: "Please enter both email and password",
-        });
-      }
-    }, 1500);
+  const handleLogin = async () => {
+    try {
+      await loginWithRedirect();
+      toast({
+        title: "Login successful",
+        description: "Welcome to your TranslateNow dashboard",
+      });
+      navigate("/dashboard");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: "An error occurred during login. Please try again.",
+      });
+    }
   };
 
   return (
@@ -72,68 +50,24 @@ const LoginPage = () => {
                   Sign in to your account
                 </CardTitle>
                 <CardDescription className="text-center">
-                  Enter your email and password to access your account
+                  Use your Auth0 account to access TranslateNow
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="password" className="text-sm font-medium">
-                        Password
-                      </label>
-                      <Link
-                        to="/forgot-password"
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="remember" />
-                    <label
-                      htmlFor="remember"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Remember me
-                    </label>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign In"
-                    )}
-                  </Button>
-                </form>
+                <Button
+                  onClick={handleLogin}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In with Auth0"
+                  )}
+                </Button>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
