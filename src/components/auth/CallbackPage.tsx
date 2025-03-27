@@ -3,21 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const CallbackPage = () => {
-  const { handleRedirectCallback } = useAuth0();
+  const { handleRedirectCallback, isAuthenticated, user } = useAuth0();
   const navigate = useNavigate();
 
   useEffect(() => {
-    handleRedirectCallback()
-      .then(() => {
-        // Redirect to dashboard after successful login
-        navigate("/dashboard");
-      })
-      .catch((error) => {
+    const handleCallback = async () => {
+      try {
+        await handleRedirectCallback();
+        console.log("Auth0 callback handled successfully");
+        console.log("User authenticated:", isAuthenticated);
+        console.log("User data:", user);
+        
+        // Always redirect to dashboard after successful authentication
+        navigate("/dashboard", { replace: true });
+      } catch (error) {
         console.error("Error handling callback:", error);
-        // Redirect to login page if there's an error
-        navigate("/login");
-      });
-  }, [handleRedirectCallback, navigate]);
+        // Only redirect to login if there's an actual error
+        navigate("/login", { replace: true });
+      }
+    };
+
+    handleCallback();
+  }, [handleRedirectCallback, navigate, isAuthenticated, user]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

@@ -23,13 +23,11 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     try {
-      await loginWithRedirect();
-      toast({
-        title: "Login successful",
-        description: "Welcome to your TranslateNow dashboard",
+      await loginWithRedirect({
+        appState: { returnTo: "/dashboard" }
       });
-      navigate("/dashboard");
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Login failed",
