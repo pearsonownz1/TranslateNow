@@ -4,7 +4,6 @@ export const auth0Config = {
   cacheLocation: "localstorage",
   useRefreshTokens: true,
   authorizationParams: {
-    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
     redirect_uri: import.meta.env.PROD 
       ? "https://pingtranslate.com/callback"
       : "http://localhost:5173/callback",
