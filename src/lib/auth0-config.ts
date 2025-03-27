@@ -5,7 +5,6 @@ export const auth0Config = {
     redirect_uri: import.meta.env.PROD 
       ? "https://pingtranslate.com/callback"
       : "http://localhost:5173/callback",
-    audience: import.meta.env.VITE_AUTH0_AUDIENCE || "",
     scope: "openid profile email",
   },
 }; 
