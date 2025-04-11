@@ -50,7 +50,7 @@ const SocialProof = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12 text-center items-center max-w-4xl mx-auto"> {/* Adjusted gaps */}
           <div className="flex flex-col items-center"> {/* Ensure content is centered */}
             {/* Updated paths to assumed filenames based on provided images */}
-            <img src="/logos/ata-logo.png" alt="American Translators Association Logo" className="h-8 mx-auto mb-3" /> {/* Adjusted height */}
+            <img src="/logos/ata-logo2.png" alt="American Translators Association Logo" className="h-8 mx-auto mb-3" /> {/* Adjusted height */}
             <p className="text-sm text-gray-600 leading-snug"> {/* Added leading-snug */}
               American Translators Association Corporate Member
             </p>
