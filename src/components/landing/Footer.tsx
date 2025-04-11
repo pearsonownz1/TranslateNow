@@ -18,9 +18,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <Link to="/" className="flex items-center mb-4">
-              <span className="text-2xl font-bold text-white">
-                OpenTranslate
-              </span>
+              {/* Use the logo image in the footer */}
+              <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="w-40 h-auto" />
             </Link>
             <p className="mb-4 text-gray-400">
               Professional certified translation services for immigration,
