@@ -6,6 +6,7 @@ import { Toaster } from "./components/ui/toaster";
 import { Suspense, lazy } from "react";
 import Home from "./components/home";
 import LandingPage from "./components/landing/LandingPage";
+import CheckoutLayout from "./components/checkout/CheckoutLayout"; // Import the new layout
 
 // Lazy load checkout components
 const ContactInfoStep = lazy(
@@ -114,7 +115,7 @@ function App() {
         >
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/checkout" element={<Home />} />
+            {/* Remove incorrect /checkout route */}
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/solutions" element={<SolutionsPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
@@ -147,28 +148,27 @@ function App() {
               <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
             </Route>
 
-            {/* Individual checkout steps */}
-            <Route
-              path="/contact-info"
-              element={<ContactInfoStep onNext={() => {}} />}
-            />
-            <Route
-              path="/document-language"
-              element={<DocumentAndLanguageStep onNext={() => {}} />}
-            />
-            <Route
-              path="/service"
-              element={<ServiceOptionsStep onNext={() => {}} onBack={() => {}} />}
-            />
-            <Route
-              path="/delivery"
-              element={<DeliveryOptionsStep onNext={() => {}} onBack={() => {}} />}
-            />
-            <Route
-              path="/payment"
-              element={<PaymentStep onComplete={() => {}} onBack={() => {}} />}
-            />
-            <Route path="/confirmation" element={<OrderConfirmation />} />
+            {/* Checkout routes using the new layout */}
+            <Route path="/checkout" element={<CheckoutLayout />}>
+              <Route index element={<ContactInfoStep onNext={() => {}} />} /> {/* First step as index */}
+              <Route
+                path="document-language"
+                element={<DocumentAndLanguageStep onNext={() => {}} />}
+              />
+              <Route
+                path="service"
+                element={<ServiceOptionsStep onNext={() => {}} onBack={() => {}} />}
+              />
+              <Route
+                path="delivery"
+                element={<DeliveryOptionsStep onNext={() => {}} onBack={() => {}} />}
+              />
+              <Route
+                path="payment"
+                element={<PaymentStep onComplete={() => {}} onBack={() => {}} />}
+              />
+              <Route path="confirmation" element={<OrderConfirmation />} />
+            </Route>
           </Routes>
           <Toaster />
         </React.Suspense>
