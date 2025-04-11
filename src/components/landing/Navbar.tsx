@@ -32,8 +32,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center"> {/* Re-added flex items-center */}
-          {/* Revert to responsive Tailwind classes */}
-          <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="h-10 md:h-12 lg:h-14 object-contain" />
+          {/* Adjust responsive width based on feedback */}
+          <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="w-32 md:w-36 lg:w-40 h-auto" />
         </Link>
 
         {/* Desktop Navigation */}
