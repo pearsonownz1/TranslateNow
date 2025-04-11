@@ -1,0 +1,68 @@
+import React from 'react';
+import Navbar from '@/components/landing/Navbar';
+import Footer from '@/components/landing/Footer';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+
+const LegalPage = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow pt-20"> {/* Adjust pt based on Navbar height */}
+        <section className="py-16 md:py-24 bg-gradient-to-b from-blue-50 to-white">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+              Legal Document Translation
+            </h1>
+            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              Confidential and precise translations for contracts, court documents, patents, and other legal materials by certified legal translation specialists.
+            </p>
+            <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <Link to="/checkout">Get a Free Quote</Link>
+            </Button>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-20">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-semibold text-center mb-12 text-gray-800">Expertise in Legal Terminology</h2>
+            <div className="grid md:grid-cols-3 gap-8 text-center">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-700">Accuracy & Confidentiality</h3>
+                <p className="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Strict confidentiality protocols are followed for all documents.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-700">Subject Matter Experts</h3>
+                <p className="text-gray-600">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-700">Court Admissible</h3>
+                <p className="text-gray-600">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-20 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-semibold text-center mb-12 text-gray-800">Types of Legal Documents</h2>
+             <ul className="list-disc list-inside max-w-2xl mx-auto text-gray-600 space-y-2">
+                <li>Contracts and Agreements</li>
+                <li>Court Transcripts and Judgments</li>
+                <li>Patents and Intellectual Property</li>
+                <li>Wills and Testaments</li>
+                <li>Power of Attorney</li>
+                <li>Legal Correspondence</li>
+                <li>Depositions</li>
+                <li>And more...</li>
+             </ul>
+          </div>
+        </section>
+
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default LegalPage;

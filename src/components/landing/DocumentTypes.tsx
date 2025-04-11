@@ -17,6 +17,7 @@ interface DocumentTypeCardProps {
   title: string;
   description: string;
   examples: string[];
+  linkTo: string; // Add linkTo prop
 }
 
 const DocumentTypeCard = ({
@@ -24,9 +25,10 @@ const DocumentTypeCard = ({
   title,
   description,
   examples,
+  linkTo, // Use linkTo prop
 }: DocumentTypeCardProps) => (
   <Card className="border border-gray-200 hover:border-blue-200 hover:shadow-md transition-all">
-    <CardContent className="p-6">
+    <CardContent className="p-6 flex flex-col h-full"> {/* Ensure content fills height */}
       <div className="mb-4 text-blue-600">{icon}</div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
@@ -41,12 +43,14 @@ const DocumentTypeCard = ({
           ))}
         </ul>
       </div>
-      <Button asChild variant="outline" className="w-full mt-2">
-        <Link to="/checkout" className="flex items-center justify-center">
-          Translate Now
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Link>
-      </Button>
+      <div className="mt-auto pt-4"> {/* Push button to bottom */}
+        <Button asChild variant="outline" className="w-full">
+          <Link to={linkTo} className="flex items-center justify-center">
+            Learn More {/* Change button text */}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
     </CardContent>
   </Card>
 );
@@ -65,6 +69,7 @@ const DocumentTypes = () => {
         "Passports",
         "ID Cards",
       ],
+      linkTo: "/solutions/immigration", // Add link
     },
     {
       icon: <Award className="h-6 w-6" />,
@@ -78,6 +83,7 @@ const DocumentTypes = () => {
         "Police Records",
         "Medical Records",
       ],
+      linkTo: "/solutions/personal", // Link to Personal as fallback
     },
     {
       icon: <Scale className="h-6 w-6" />,
@@ -91,6 +97,7 @@ const DocumentTypes = () => {
         "Affidavits",
         "Legal Notices",
       ],
+      linkTo: "/solutions/legal", // Add link
     },
     {
       icon: <GraduationCap className="h-6 w-6" />,
@@ -104,6 +111,7 @@ const DocumentTypes = () => {
         "Course Descriptions",
         "Letters of Recommendation",
       ],
+      linkTo: "/solutions/academic", // Add link
     },
     {
       icon: <Briefcase className="h-6 w-6" />,
@@ -117,6 +125,7 @@ const DocumentTypes = () => {
         "Business Proposals",
         "Annual Reports",
       ],
+      linkTo: "/solutions/business", // Add link
     },
     {
       icon: <FileSignature className="h-6 w-6" />,
@@ -130,6 +139,7 @@ const DocumentTypes = () => {
         "Medical Prescriptions",
         "Personal Letters",
       ],
+      linkTo: "/solutions/personal", // Add link
     },
   ];
 
@@ -153,6 +163,7 @@ const DocumentTypes = () => {
               title={docType.title}
               description={docType.description}
               examples={docType.examples}
+              linkTo={docType.linkTo} // Pass linkTo prop
             />
           ))}
         </div>

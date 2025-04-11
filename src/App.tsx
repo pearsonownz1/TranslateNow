@@ -28,9 +28,14 @@ const OrderConfirmation = lazy(
 
 // Lazy load page components
 const PricingPage = lazy(() => import("./components/pricing/PricingPage"));
-const SolutionsPage = lazy(
-  () => import("./components/solutions/SolutionsPage"),
-);
+const SolutionsPage = lazy(() => import("./components/solutions/SolutionsPage"));
+// Lazy load the new solution pages
+const ImmigrationPage = lazy(() => import("./components/solutions/ImmigrationPage"));
+const LegalPage = lazy(() => import("./components/solutions/LegalPage"));
+const AcademicPage = lazy(() => import("./components/solutions/AcademicPage"));
+const BusinessPage = lazy(() => import("./components/solutions/BusinessPage"));
+const PersonalPage = lazy(() => import("./components/solutions/PersonalPage"));
+
 const ResourcesPage = lazy(
   () => import("./components/resources/ResourcesPage"),
 );
@@ -117,7 +122,14 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             {/* Remove incorrect /checkout route */}
             <Route path="/pricing" element={<PricingPage />} />
+            {/* Keep the main /solutions route */}
             <Route path="/solutions" element={<SolutionsPage />} />
+            {/* Add routes for individual solution pages */}
+            <Route path="/solutions/immigration" element={<ImmigrationPage />} />
+            <Route path="/solutions/legal" element={<LegalPage />} />
+            <Route path="/solutions/academic" element={<AcademicPage />} />
+            <Route path="/solutions/business" element={<BusinessPage />} />
+            <Route path="/solutions/personal" element={<PersonalPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
