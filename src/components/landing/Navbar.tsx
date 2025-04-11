@@ -32,8 +32,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          {/* Use the new logo image (logo2.png), increased fixed height */}
-          <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="h-16 w-auto" />
+          {/* Use the new logo image (logo2.png), remove explicit size classes */}
+          <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="" />
         </Link>
 
         {/* Desktop Navigation */}
