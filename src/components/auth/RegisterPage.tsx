@@ -80,7 +80,7 @@ const RegisterPage = () => {
                   Create your account
                 </CardTitle>
                 <CardDescription className="text-center">
-                  Sign up to start using TranslateNow
+                  Sign up to start using OpenTranslate
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleRegister}>

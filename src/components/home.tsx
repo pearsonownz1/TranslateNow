@@ -297,7 +297,7 @@ function Home() {
       {/* Header */}
       <header className="bg-gray-900 text-white py-4 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold">TranslateNow</h1>
+          <h1 className="text-3xl font-bold">OpenTranslate</h1>
         </div>
       </header>
 
@@ -387,7 +387,8 @@ function Home() {
               {renderStepContent()}
             </div>
 
-            {currentStep > 1 && currentStep <= totalSteps && (
+            {/* Render OrderSummary only for steps 2, 3, and 4 (not 5, as PaymentStep handles its own) */}
+            {currentStep > 1 && currentStep < totalSteps && (
               <div className="w-full lg:w-80 mt-8 lg:mt-0">
                 <div className="sticky top-6 space-y-6">
                   <OrderSummary
@@ -442,7 +443,7 @@ function Home() {
       <footer className="bg-white border-t py-6 mt-12">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <div>© 2025 TranslateNow, LLC. All Rights Reserved</div>
+            <div>© 2025 OpenTranslate, LLC. All Rights Reserved</div>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-gray-900">
                 Terms of Service

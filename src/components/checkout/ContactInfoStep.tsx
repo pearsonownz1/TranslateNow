@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, Shield, Award } from "lucide-react";
+import { Lock, Shield, Star } from "lucide-react"; // Import Star instead of Award
 
 const contactFormSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -113,62 +113,54 @@ const ContactInfoStep = ({
           </Card>
         </div>
 
-        <div>
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-start">
-                <Shield className="h-5 w-5 text-gray-700 mt-0.5 mr-3" />
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-1">
-                    100% Acceptance
-                  </h3>
-                  <p className="text-sm text-gray-700">
-                    Our translations meet the requirements for certified
-                    translation acceptance — it's guaranteed.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-start">
-                <Lock className="h-5 w-5 text-gray-800 mt-0.5 mr-3" />
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-1">
-                    Secure & Private
-                  </h3>
-                  <p className="text-sm text-gray-700">
-                    Your documents are securely stored and only transmitted via
-                    encrypted means.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-start">
-                <Award className="h-5 w-5 text-gray-700 mt-0.5 mr-3" />
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-1">
-                    Professionally Translated
-                  </h3>
-                  <p className="text-sm text-gray-700">
-                    Your certified translation will be completed by a
-                    professional translator.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <p className="text-sm text-gray-500">
-                Already have an account? Please{" "}
-                <a href="#" className="text-gray-900 hover:underline">
-                  Sign In
-                </a>
+        {/* Right: Trust Indicators */}
+        <div className="space-y-4">
+          {/* Adjusted to space-y-4 and removed max-w-md as grid handles width */}
+          <div className="p-4 rounded-md border shadow-sm flex gap-4 items-start">
+            <Shield
+              className="w-6 h-6 mt-1 flex-shrink-0"
+              aria-hidden="true"
+            />{" "}
+            {/* Use Shield, updated classes */}
+            <div>
+              <h4 className="font-semibold text-gray-900">100% Acceptance</h4>
+              <p className="text-sm text-gray-600">
+                Our translations meet the requirements for certified translation
+                acceptance — it's guaranteed.
               </p>
             </div>
           </div>
+          <div className="p-4 rounded-md border shadow-sm flex gap-4 items-start">
+            <Lock
+              className="w-6 h-6 mt-1 flex-shrink-0"
+              aria-hidden="true"
+            />{" "}
+            {/* Use Lock, updated classes */}
+            <div>
+              <h4 className="font-semibold text-gray-900">Secure & Private</h4>
+              <p className="text-sm text-gray-600">
+                Your documents are securely stored and only transmitted via
+                encrypted means.
+              </p>
+            </div>
+          </div>
+          <div className="p-4 rounded-md border shadow-sm flex gap-4 items-start">
+            <Star
+              className="w-6 h-6 mt-1 flex-shrink-0"
+              aria-hidden="true"
+            />{" "}
+            {/* Use Star, updated classes */}
+            <div>
+              <h4 className="font-semibold text-gray-900">
+                Professionally Translated
+              </h4>
+              <p className="text-sm text-gray-600">
+                Your certified translation will be completed by a professional
+                translator.
+              </p>
+            </div>
+          </div>
+          {/* Removed the "Already have an account?" section */}
         </div>
       </div>
     </div>

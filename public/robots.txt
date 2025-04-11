@@ -1,0 +1,6 @@
+# Allow all crawlers access to all content
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://v0-translate-fqgfpb709-guy-gcsorgs-projects.vercel.app/sitemap.xml

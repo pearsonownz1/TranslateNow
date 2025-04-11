@@ -19,7 +19,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="flex items-center mb-4">
               <span className="text-2xl font-bold text-white">
-                TranslateNow
+                OpenTranslate
               </span>
             </Link>
             <p className="mb-4 text-gray-400">
@@ -178,7 +178,7 @@ const Footer = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="text-sm text-gray-400">
-            © {new Date().getFullYear()} TranslateNow. All rights reserved.
+            © {new Date().getFullYear()} OpenTranslate. All rights reserved.
           </div>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link

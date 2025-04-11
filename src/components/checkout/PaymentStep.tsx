@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Check, CreditCard, Lock, PaypalIcon } from "lucide-react";
+import { Check, CreditCard, Lock } from "lucide-react";
 import OrderSummary from "./OrderSummary";
 import StripePaymentForm from "./StripePaymentForm";
 
@@ -191,6 +191,7 @@ const PaymentStep = ({
 
         <div className="w-full lg:w-80">
           <div className="sticky top-6 space-y-6">
+            {/* This is the OrderSummary we are keeping */}
             <OrderSummary
               documentType={orderDetails.documentType}
               sourceLanguage={orderDetails.sourceLanguage}

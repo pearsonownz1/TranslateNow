@@ -55,7 +55,7 @@ const Testimonials = () => {
     },
     {
       quote:
-        "As an immigration attorney, I've worked with many translation services, but TranslateNow consistently delivers the highest quality certified translations.",
+        "As an immigration attorney, I've worked with many translation services, but OpenTranslate consistently delivers the highest quality certified translations.",
       author: "David Chen",
       role: "Immigration Attorney",
       image: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",

@@ -50,7 +50,7 @@ const DashboardHeader = ({ user }: DashboardHeaderProps) => {
           <div className="flex items-center">
             <Link to="/dashboard" className="flex items-center">
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                TranslateNow
+                OpenTranslate
               </span>
             </Link>
           </div>

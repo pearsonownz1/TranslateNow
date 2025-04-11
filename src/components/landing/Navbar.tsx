@@ -32,9 +32,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            TranslateNow
-          </span>
+          {/* Use the new logo image, increased width */}
+          <img src="/logos/logo.png" alt="OpenTranslate Logo" className="w-52 h-auto" />
         </Link>
 
         {/* Desktop Navigation */}

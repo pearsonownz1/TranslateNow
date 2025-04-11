@@ -2,6 +2,7 @@ import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { tempo } from "tempo-devtools/dist/vite";
+import sitemap from 'vite-plugin-sitemap'; // Import the sitemap plugin
 
 const conditionalPlugins: [string, Record<string, any>][] = [];
 
@@ -21,6 +22,7 @@ export default defineConfig({
       plugins: conditionalPlugins,
     }),
     tempo(),
+    sitemap({ hostname: 'https://v0-translate-fqgfpb709-guy-gcsorgs-projects.vercel.app' }), // Add sitemap plugin
   ],
   resolve: {
     preserveSymlinks: true,

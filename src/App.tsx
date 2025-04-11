@@ -4,11 +4,8 @@ import { supabase } from "./lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { Toaster } from "./components/ui/toaster";
 import { Suspense, lazy } from "react";
-import { Auth0Provider } from "@auth0/auth0-react";
-import { auth0Config } from "./lib/auth0-config";
 import Home from "./components/home";
 import LandingPage from "./components/landing/LandingPage";
-import routes from "tempo-routes";
 
 // Lazy load checkout components
 const ContactInfoStep = lazy(
@@ -107,10 +104,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <Auth0Provider {...auth0Config}>
-      <Router>
-        <React.Suspense
-          fallback={
+    <Router>
+      <React.Suspense
+        fallback={
             <div className="flex items-center justify-center min-h-screen">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
@@ -173,14 +169,10 @@ function App() {
               element={<PaymentStep onComplete={() => {}} onBack={() => {}} />}
             />
             <Route path="/confirmation" element={<OrderConfirmation />} />
-            {import.meta.env.VITE_TEMPO === "true" && (
-              <Route path="/tempobook/*" element={null} />
-            )}
           </Routes>
           <Toaster />
         </React.Suspense>
       </Router>
-    </Auth0Provider>
   );
 }
 

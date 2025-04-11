@@ -6,15 +6,17 @@ import { ArrowRight, Check } from "lucide-react";
 
 const Hero = () => {
   return (
-    <div className="relative bg-gradient-to-b from-gray-50 to-white pt-32 pb-20 lg:pt-40 lg:pb-28">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col lg:flex-row items-center gap-12">
+    <main> {/* Added main tag */}
+      <section aria-labelledby="hero-heading" className="relative bg-gradient-to-b from-gray-50 to-white pt-32 pb-20 lg:pt-40 lg:pb-28">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
           <div className="lg:w-1/2 space-y-6">
             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mb-4">
               USCIS & Government Accepted
             </Badge>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900">
+            {/* Use id for aria-labelledby */}
+            <h1 id="hero-heading" className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900">
               Certified Document{" "}
               <span className="text-blue-600">Translation</span> Services
             </h1>
@@ -79,10 +81,11 @@ const Hero = () => {
             {/* Decorative elements */}
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-200 rounded-full opacity-70 blur-xl"></div>
             <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-indigo-200 rounded-full opacity-70 blur-xl"></div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 
