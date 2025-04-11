@@ -32,8 +32,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          {/* Use the new logo image (logo2.png), remove explicit size classes */}
-          <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="" />
+          {/* Use the new logo image (logo2.png), with refined responsive sizing */}
+          <img src="/logos/logo2.png" alt="OpenTranslate Logo" className="h-10 md:h-12 lg:h-14 object-contain" />
         </Link>
 
         {/* Desktop Navigation */}
