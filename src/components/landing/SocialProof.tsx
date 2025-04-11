@@ -56,7 +56,7 @@ const SocialProof = () => {
             </p>
           </div>
           <div className="flex flex-col items-center">
-            <img src="/logos/bbb-accredited.png" alt="Better Business Bureau Accredited Business Logo" className="h-10 mx-auto mb-3" /> {/* Adjusted height */}
+            <img src="/logos/bbb-accredited2.png" alt="Better Business Bureau Accredited Business Logo" className="h-10 mx-auto mb-3" /> {/* Adjusted height */}
             <p className="text-sm text-gray-600 leading-snug">
               Accredited with an A+ rating from the BBB
             </p>
