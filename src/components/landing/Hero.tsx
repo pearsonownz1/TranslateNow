@@ -64,7 +64,7 @@ const Hero = () => {
           <div className="lg:w-1/2 relative">
             <div className="relative z-10 bg-white rounded-xl shadow-xl overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80"
+                src="/images/your-new-hero-image.jpg" // Updated image path
                 alt="Professional document translation"
                 className="w-full h-auto"
               />
