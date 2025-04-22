@@ -87,7 +87,34 @@ const StripePaymentForm = ({
             }),
       });
 
-      const { clientSecret, error: backendError } = await response.json();
+      // Improved error handling for non-JSON responses (like 405)
+      let clientSecret: string | undefined;
+      let backendError: { message?: string } | undefined;
+
+      try {
+        // Only proceed if the response status is OK (e.g., 2xx)
+        if (!response.ok) {
+            // Attempt to read the response body as text for debugging
+            const errorText = await response.text();
+            console.error(`Server responded with ${response.status}:`, errorText);
+            throw new Error(`Server error: ${response.statusText || 'Failed to fetch'}`);
+        }
+        // Try parsing JSON only if response is ok
+        const data = await response.json();
+        clientSecret = data.clientSecret;
+        backendError = data.error; // Assuming error is nested like { error: { message: '...' } }
+
+      } catch (err: any) {
+        // Handle JSON parsing errors or network errors
+        console.error('Error processing server response:', err);
+        // If it was a JSON parse error, the original response might still be useful as text
+        if (err instanceof SyntaxError && response) {
+            const text = await response.text().catch(() => 'Could not read response text.'); // Avoid nested errors
+            console.error('Non-JSON response received:', text);
+        }
+        throw new Error(err.message || 'Invalid server response');
+      }
+
 
       if (backendError || !clientSecret) {
         throw new Error(backendError?.message || 'Failed to initialize payment.');
