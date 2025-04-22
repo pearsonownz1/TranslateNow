@@ -257,6 +257,13 @@ const CheckoutFlow = () => {
     // Calculate the final price based on selections
     const { total } = calculateTotal(orderData); // Calculate total price
 
+    // Log the document language data before accessing it
+    console.log("Document Language Data in saveOrder:", orderData.documentLanguage);
+
+    // Calculate document_id before creating the object
+    const docIdToInsert = orderData.documentLanguage.files[0]?.storagePath || null; // Use first file's path, handle empty array
+    console.log("Value being used for document_id:", docIdToInsert); // Log the value being inserted
+
     const orderToInsert = {
       user_id: session.user.id,
       email: orderData.contactInfo.email, // Can assume contactInfo exists due to check above
@@ -268,6 +275,7 @@ const CheckoutFlow = () => {
       // Adjust based on how you want to store multiple file references in your DB
       // Option 1: Store as JSON array of paths (if column type is jsonb) - Ensure storagePath is set!
       document_paths: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean),
+      document_id: docIdToInsert, // Use the calculated value
       // Option 2: Store as comma-separated string (less flexible)
       // document_paths_csv: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean).join(','),
       // Option 3: If you have a separate related table for documents, insert records there.
