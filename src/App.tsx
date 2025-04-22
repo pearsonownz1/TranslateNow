@@ -254,8 +254,8 @@ const CheckoutFlow = () => {
     console.log("Attempting to save order:", { userId: session.user.id, ...orderData });
 
     // **IMPORTANT**: Map orderData state to your actual 'orders' table columns
-    // You will likely need a function to calculate the final price based on selections
-    // const totalPrice = calculateTotalPrice(orderData); // Placeholder
+    // Calculate the final price based on selections
+    const { total } = calculateTotal(orderData); // Calculate total price
 
     const orderToInsert = {
       user_id: session.user.id,
@@ -275,7 +275,7 @@ const CheckoutFlow = () => {
       service_level: orderData.serviceOptions.serviceId,
       delivery_option: orderData.deliveryOptions.deliveryId,
       status: 'pending', // Initial status
-      // total_price: totalPrice, // Use calculated price
+      total_price: total, // Add calculated total price
       // Add any other relevant fields from your DB schema
     };
 
