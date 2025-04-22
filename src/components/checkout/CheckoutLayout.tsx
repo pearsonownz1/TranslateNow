@@ -7,7 +7,8 @@ const CheckoutLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow pt-20"> {/* Add padding-top to account for fixed Navbar */}
+      {/* Increased padding-top for more space below navbar */}
+      <main className="flex-grow pt-32"> 
         <Outlet /> {/* Child routes (checkout steps) will render here */}
       </main>
       <Footer />
