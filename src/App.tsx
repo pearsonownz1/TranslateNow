@@ -263,7 +263,7 @@ const CheckoutFlow = () => {
 
     // Generate a UUID for the document_id column
     const generatedDocId = uuidv4();
-    console.log("Generated UUID for document_id:", generatedDocId);
+    // console.log("Generated UUID for document_id:", generatedDocId); // No longer generating UUID here
 
     const orderToInsert = {
       user_id: session.user.id,
@@ -276,7 +276,7 @@ const CheckoutFlow = () => {
       // Adjust based on how you want to store multiple file references in your DB
       // Option 1: Store as JSON array of paths (if column type is jsonb) - Ensure storagePath is set!
       document_paths: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean),
-      document_id: generatedDocId, // Use the generated UUID
+      // document_id: generatedDocId, // Completely removed document_id from insert object
       // Option 2: Store as comma-separated string (less flexible)
       // document_paths_csv: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean).join(','),
       // Option 3: If you have a separate related table for documents, insert records there.
