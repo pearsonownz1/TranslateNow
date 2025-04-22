@@ -138,13 +138,13 @@ const StripePaymentForm = ({
         console.error("Stripe payment error:", stripeError);
         setError(stripeError.message || "An error occurred during payment.");
         toast({ variant: "destructive", title: "Payment Failed", description: stripeError.message });
-      } else if (paymentIntent?.status === 'succeeded') {
-        // Payment succeeded!
-        console.log("Payment successful!", paymentIntent);
-        toast({ title: "Payment Successful", description: "Your order is being processed." });
-        onSubmit(); // Trigger the next step (saving order, navigating)
-      } else {
-         console.log("Payment status:", paymentIntent?.status)
+       } else if (paymentIntent?.status === 'succeeded') {
+         // Payment succeeded!
+         console.log("Payment successful!", paymentIntent);
+         // toast({ title: "Payment Successful", description: "Your order is being processed." }); // Remove toast, rely on redirect
+         onSubmit(); // Trigger the next step (saving order, navigating)
+       } else {
+          console.log("Payment status:", paymentIntent?.status)
          setError("Payment processing failed. Please try again.");
          toast({ variant: "destructive", title: "Payment Failed", description: "Could not process payment." });
       }
