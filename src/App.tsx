@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom"; // Import useNavigate
 import { supabase } from "./lib/supabase";
 import { Session } from "@supabase/supabase-js";
+import { v4 as uuidv4 } from 'uuid'; // Import uuid generator
 import { Toaster } from "./components/ui/toaster";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
@@ -260,9 +261,9 @@ const CheckoutFlow = () => {
     // Log the document language data before accessing it
     console.log("Document Language Data in saveOrder:", orderData.documentLanguage);
 
-    // Calculate document_id before creating the object
-    const docIdToInsert = orderData.documentLanguage.files[0]?.storagePath || null; // Use first file's path, handle empty array
-    console.log("Value being used for document_id:", docIdToInsert); // Log the value being inserted
+    // Generate a UUID for the document_id column
+    const generatedDocId = uuidv4();
+    console.log("Generated UUID for document_id:", generatedDocId);
 
     const orderToInsert = {
       user_id: session.user.id,
@@ -275,7 +276,7 @@ const CheckoutFlow = () => {
       // Adjust based on how you want to store multiple file references in your DB
       // Option 1: Store as JSON array of paths (if column type is jsonb) - Ensure storagePath is set!
       document_paths: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean),
-      document_id: docIdToInsert, // Use the calculated value
+      document_id: generatedDocId, // Use the generated UUID
       // Option 2: Store as comma-separated string (less flexible)
       // document_paths_csv: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean).join(','),
       // Option 3: If you have a separate related table for documents, insert records there.
