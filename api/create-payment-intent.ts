@@ -41,6 +41,8 @@ export default async function handler(req: Request) {
         });
     }
 
+    console.log(`Attempting to create PaymentIntent for amount: ${amount} ${currency}`); // Add logging before Stripe call
+
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
