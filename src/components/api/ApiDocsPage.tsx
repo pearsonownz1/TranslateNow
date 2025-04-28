@@ -13,8 +13,10 @@ const ApiDocsPage = () => {
   const requestPayloadExample = `{
   "applicant_name": "Jane Doe",
   "country_of_education": "India",
-  "degree_received": "Bachelor of Engineering"
-}`;
+  "degree_received": "Bachelor of Engineering",
+  "year_of_graduation": 2020,
+  "notes": "Optional notes about the applicant or request."
+}`; // Updated example
 
   const successResponseExample = `{
   "message": "Quote request received successfully",
@@ -24,9 +26,19 @@ const ApiDocsPage = () => {
   const callbackPayloadExample = `{
   "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "applicant_name": "Jane Doe",
+  "status": "completed",
   "us_equivalent": "Bachelor’s Degree in Engineering",
-  "status": "completed"
-}`;
+  "unable_to_provide": false
+}
+
+// Example: Rejected
+{
+  "quote_request_id": "def456uvw",
+  "applicant_name": "John Smith",
+  "status": "rejected",
+  "unable_to_provide": true,
+  "rejection_reason": "Documentation provided is insufficient for evaluation."
+}`; // Updated example with success/rejected cases
 
   const curlExample = `curl -X POST ${endpointUrl} \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
@@ -114,6 +126,8 @@ const ApiDocsPage = () => {
                 <li>`applicant_name` (string): The full name of the applicant.</li>
                 <li>`country_of_education` (string): The country where the applicant received their education.</li>
                 <li>`degree_received` (string): The name of the degree or credential received.</li>
+                <li>`year_of_graduation` (number): The year the applicant graduated (integer).</li>
+                <li>`notes` (string, optional): Any additional notes relevant to the request.</li>
               </ul>
                <h4 className="font-semibold pt-2">Example Request (cURL):</h4>
                <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
@@ -149,7 +163,7 @@ const ApiDocsPage = () => {
                 You should compute the HMAC-SHA256 signature on your server using the received raw request body and your stored Webhook Secret. Compare your computed signature (prefixed with `sha256=`) with the value in the `X-Webhook-Signature` header. If they match, the request is authentic. Reject requests with invalid signatures.
               </p>
               <p className="mt-2 text-sm text-gray-600">
-                **Important:** Your endpoint should respond with a `2xx` status code (e.g., 200 OK) quickly upon receiving the callback to acknowledge receipt. Any processing should happen asynchronously.
+                **Important:** Your endpoint should respond with a `2xx` status code (e.g., 200 OK) quickly upon receiving the callback to acknowledge receipt. Any processing should happen asynchronously. Check the `status` field in the payload (`completed` or `rejected`) to determine the outcome.
               </p>
             </CardContent>
           </Card>
