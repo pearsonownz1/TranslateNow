@@ -1,5 +1,6 @@
 // api/send-order-confirmation.ts
 import { Resend } from 'resend';
+import { VercelRequest, VercelResponse } from '@vercel/node'; // Import types
 
 // IMPORTANT: Store your Resend API key in Vercel Environment Variables
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -19,7 +20,7 @@ interface RequestBody {
 
 // Basic HTML email template (consider using a templating engine for more complex emails)
 const createCustomerEmailHtml = (data: RequestBody): string => `
-  <h1>Your OpenTranslate Order #${data.orderNumber} is Confirmed!</h1>
+  <h1>Your OpenEval Order #${data.orderNumber} is Confirmed!</h1>
   <p>Hi ${data.orderDetails.contactInfo?.fullName || 'Customer'},</p>
   <p>Thank you for your order. Here's a summary:</p>
   <ul>
@@ -31,7 +32,7 @@ const createCustomerEmailHtml = (data: RequestBody): string => `
     <li><strong>Total Price:</strong> $${data.totalPrice.toFixed(2)}</li>
   </ul>
   <p>We'll notify you once your translation is complete. You can view your order details in your dashboard.</p>
-  <p>Thanks,<br/>The OpenTranslate Team</p>
+  <p>Thanks,<br/>The OpenEval Team</p>
 `;
 
 const createAdminEmailHtml = (data: RequestBody): string => `
@@ -52,7 +53,7 @@ const createAdminEmailHtml = (data: RequestBody): string => `
 `;
 
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: VercelRequest, res: VercelResponse) { // Updated signature
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).end('Method Not Allowed');
@@ -68,9 +69,9 @@ export default async function handler(req: any, res: any) {
 
     // Send email to customer
     const customerEmailData = await resend.emails.send({
-      from: 'OpenTranslate <orders@mail.opentranslate.co>', // Use your verified Resend domain/sender
+      from: 'OpenEval <orders@mail.openeval.com>', // Use your verified Resend domain/sender
       to: [body.customerEmail],
-      subject: `Your OpenTranslate Order Confirmation #${body.orderNumber}`,
+      subject: `Your OpenEval Order Confirmation #${body.orderNumber}`,
       html: createCustomerEmailHtml(body),
     });
     console.log("Customer confirmation email sent:", customerEmailData);
@@ -78,7 +79,7 @@ export default async function handler(req: any, res: any) {
 
     // Send email to admin
     const adminEmailData = await resend.emails.send({
-        from: 'OpenTranslate Order System <orders@mail.opentranslate.co>', // Use your verified Resend domain/sender
+        from: 'OpenEval Order System <orders@mail.openeval.com>', // Use your verified Resend domain/sender
         to: ['guy@gcs.org'], // Admin email
         subject: `New Translation Order Received: #${body.orderNumber}`,
         html: createAdminEmailHtml(body),

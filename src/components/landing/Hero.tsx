@@ -11,52 +11,56 @@ const Hero = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center gap-12">
           <div className="lg:w-1/2 space-y-6">
+            {/* Updated Badge */}
             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mb-4">
-              USCIS & Government Accepted
+              USCIS, University & Employer Accepted Evaluations & Translations
             </Badge>
 
-            {/* Use id for aria-labelledby */}
+            {/* Use id for aria-labelledby - Updated H1 */}
             <h1 id="hero-heading" className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900">
-              Certified Document{" "}
-              <span className="text-blue-600">Translation</span> Services
+              Credential Evaluation & Certified Degree Translation
             </h1>
 
+            {/* Updated Paragraph */}
             <p className="text-xl text-gray-600 max-w-2xl">
-              Fast, accurate, and certified translations for immigration, legal,
-              and academic purposes. 100% acceptance guarantee.
+              Expert foreign credential evaluations and certified translations of academic documents (degrees, transcripts) for U.S. education, employment (licensing), and immigration (USCIS). Fast, accurate, and guaranteed acceptance.
             </p>
 
+            {/* Updated Buttons - Consider a combined "Get Started" or separate CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button
                 asChild
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <Link to="/checkout" className="flex items-center">
-                  Get Started
+                {/* Link to a general starting point or evaluation first */}
+                <Link to="/checkout?service=evaluation" className="flex items-center">
+                  Start Evaluation
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
 
               <Button asChild variant="outline" size="lg">
-                <Link to="/quote">Get Quote</Link>
+                 {/* Link to translation service or pricing */}
+                <Link to="/checkout?service=translation">Order Translation</Link>
               </Button>
             </div>
 
+            {/* Updated Check Points */}
             <div className="pt-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span className="text-gray-700">USCIS Accepted</span>
+                  <span className="text-gray-700">USCIS Accepted Evaluations</span>
+                </div>
+                 <div className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-2" />
+                  <span className="text-gray-700">Certified Degree Translations</span>
                 </div>
                 <div className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span className="text-gray-700">24-Hour Delivery</span>
-                </div>
-                <div className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span className="text-gray-700">100% Accuracy</span>
-                </div>
+                  <span className="text-gray-700">Fast Turnaround</span>
+                </div> {/* Added missing closing div */}
               </div>
             </div>
           </div>

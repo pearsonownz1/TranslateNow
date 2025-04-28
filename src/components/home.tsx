@@ -168,30 +168,43 @@ function Home() {
       case 2:
         return (
           <DocumentAndLanguageStep
-            onNext={goToNextStep}
-            onDocumentTypeChange={(type) =>
-              handleDocumentUpload(type, checkoutData.document.file)
-            }
-            onDocumentUpload={(file) =>
-              handleDocumentUpload(checkoutData.document.type, file)
-            }
-            selectedSourceLanguage={checkoutData.languages.source}
-            selectedTargetLanguage={checkoutData.languages.target}
-            onSourceLanguageChange={(lang) =>
-              handleLanguageSelection(lang, checkoutData.languages.target)
-            }
-            onTargetLanguageChange={(lang) =>
-              handleLanguageSelection(checkoutData.languages.source, lang)
-            }
+            // Pass a function to onNext that collects data and updates state
+            onNext={(data) => {
+              setCheckoutData(prev => ({
+                ...prev,
+                document: {
+                  type: data.documentType,
+                  // Assuming 'files' in data contains the necessary info (like File objects or paths)
+                  // The Home component might not need to store the raw file object long-term
+                  file: data.files.length > 0 ? data.files[0].file : null // Example: store first file for simplicity if needed
+                },
+                languages: {
+                  source: data.sourceLanguage,
+                  target: data.targetLanguage
+                }
+              }));
+              goToNextStep(); // Proceed after updating state
+            }}
+            onBack={goToPreviousStep} // Add onBack prop
+            // Pass default values based on current state
+            defaultValues={{
+              documentType: checkoutData.document.type,
+              files: checkoutData.document.file ? [{ id: 'default', file: checkoutData.document.file, status: 'success' }] : [], // Map existing file to expected structure if needed
+              sourceLanguage: checkoutData.languages.source,
+              targetLanguage: checkoutData.languages.target
+            }}
           />
         );
       case 3:
         return (
           <ServiceOptionsStep
-            onNext={goToNextStep}
+            onNext={(data) => { // Pass data object via onNext
+              handleServiceSelection(data.serviceId); // Update state using the handler
+              goToNextStep();
+            }}
             onBack={goToPreviousStep}
-            onSelectService={handleServiceSelection}
-            selectedServiceId={checkoutData.service.level}
+            // Removed onSelectService prop
+            defaultValues={{ serviceId: checkoutData.service.level }} // Pass default value
             documentType={
               checkoutData.document.type === "standard"
                 ? "Standard Document"
@@ -224,10 +237,13 @@ function Home() {
       case 4:
         return (
           <DeliveryOptionsStep
-            onNext={goToNextStep}
+            onNext={(data) => { // Pass data object via onNext
+              handleDeliverySelection(data.deliveryId); // Update state using the handler
+              goToNextStep();
+            }}
             onBack={goToPreviousStep}
-            onSelectDelivery={handleDeliverySelection}
-            selectedDeliveryId={checkoutData.delivery.method}
+            // Removed onSelectDelivery prop
+            defaultValues={{ deliveryId: checkoutData.delivery.method }} // Pass default value
           />
         );
       case 5:
@@ -235,39 +251,7 @@ function Home() {
           <PaymentStep
             onComplete={handlePaymentComplete}
             onBack={goToPreviousStep}
-            orderDetails={{
-              documentType:
-                checkoutData.document.type === "standard"
-                  ? "Standard Document"
-                  : checkoutData.document.type === "certificate"
-                    ? "Certificate"
-                    : checkoutData.document.type === "legal"
-                      ? "Legal Document"
-                      : "Technical Document",
-              sourceLanguage:
-                checkoutData.languages.source === "en"
-                  ? "English"
-                  : checkoutData.languages.source === "es"
-                    ? "Spanish"
-                    : checkoutData.languages.source === "fr"
-                      ? "French"
-                      : "Other",
-              targetLanguage:
-                checkoutData.languages.target === "en"
-                  ? "English"
-                  : checkoutData.languages.target === "es"
-                    ? "Spanish"
-                    : checkoutData.languages.target === "fr"
-                      ? "French"
-                      : "Other",
-              serviceLevel:
-                checkoutData.service.level === "standard"
-                  ? "Standard"
-                  : checkoutData.service.level === "expedited"
-                    ? "Expedited"
-                    : "Certified",
-              price: calculateTotalPrice(),
-            }}
+            orderData={checkoutData} // Pass the entire checkoutData object
           />
         );
       default:
@@ -297,7 +281,7 @@ function Home() {
       {/* Header */}
       <header className="bg-gray-900 text-white py-4 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold">OpenTranslate</h1>
+          <h1 className="text-3xl font-bold">OpenEval</h1>
         </div>
       </header>
 
@@ -329,7 +313,9 @@ function Home() {
 
       <div className="max-w-6xl mx-auto py-8 px-4">
         {currentStep === totalSteps + 1 ? (
-          <OrderConfirmation
+          // OrderConfirmation now gets data from location.state, no props needed here
+          <OrderConfirmation />
+          /*
             orderNumber={`ORD-${Math.floor(Math.random() * 10000000)}`}
             documentType={
               checkoutData.document.type === "standard"
@@ -368,7 +354,7 @@ function Home() {
                   })
             }
             customerEmail={checkoutData.contactInfo.email}
-          />
+          */
         ) : (
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1">
@@ -443,7 +429,7 @@ function Home() {
       <footer className="bg-white border-t py-6 mt-12">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <div>© 2025 OpenTranslate, LLC. All Rights Reserved</div>
+            <div>© 2025 OpenEval, LLC. All Rights Reserved</div>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-gray-900">
                 Terms of Service

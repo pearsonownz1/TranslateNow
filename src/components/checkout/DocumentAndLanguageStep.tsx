@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Upload, FileText, Check, AlertCircle, Globe } from "lucide-react";
+import { Upload, FileText, Check, AlertCircle, Globe, Loader2, X } from "lucide-react"; // Added Loader2, X
 import {
   Card,
   CardHeader,
@@ -19,16 +19,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress"; // Added Progress component
+
+// Define structure for individual file state
+export interface UploadedFile { // Added export
+  id: string; // Unique ID for React key and state updates
+  file: File;
+  status: 'queued' | 'uploading' | 'success' | 'error';
+  progress?: number; // Optional progress percentage
+  error?: string; // Optional error message
+  storagePath?: string; // Store path/URL after successful upload
+}
+
+// Define the data structure passed by this step (now includes multiple files)
+export interface DocumentLanguageData {
+  documentType: string;
+  files: UploadedFile[]; // Array of uploaded file info (only successful ones passed onNext)
+  sourceLanguage: string;
+  targetLanguage: string;
+}
 
 interface DocumentAndLanguageStepProps {
-  onNext?: () => void;
-  onDocumentTypeChange?: (documentType: string) => void;
-  onDocumentUpload?: (file: File) => void;
-  onSourceLanguageChange?: (language: string) => void;
-  onTargetLanguageChange?: (language: string) => void;
-  selectedSourceLanguage?: string;
-  selectedTargetLanguage?: string;
+  onNext?: (data: DocumentLanguageData) => void; // Expect data object
+  onBack?: () => void; // Keep onBack if it exists or add if needed
+  defaultValues?: Partial<DocumentLanguageData>; // Allow passing default values
 }
+
 
 const languages = [
   { code: "en", name: "English" },
@@ -46,21 +62,13 @@ const languages = [
 
 const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
   onNext = () => {},
-  onDocumentTypeChange = () => {},
-  onDocumentUpload = () => {},
-  onSourceLanguageChange = () => {},
-  onTargetLanguageChange = () => {},
-  selectedSourceLanguage = "en",
-  selectedTargetLanguage = "es",
+  onBack = () => window.history.back(), // Default back behavior if not provided
+  defaultValues = {},
 }) => {
-  const [documentType, setDocumentType] = useState<string>("standard");
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<
-    "idle" | "uploading" | "success" | "error"
-  >("idle");
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [sourceLanguage, setSourceLanguage] = useState(selectedSourceLanguage);
-  const [targetLanguage, setTargetLanguage] = useState(selectedTargetLanguage);
+  const [documentType, setDocumentType] = useState<string>(defaultValues.documentType || "standard");
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(defaultValues.files || []); // Initialize with defaults if provided
+  const [sourceLanguage, setSourceLanguage] = useState(defaultValues.sourceLanguage || "en");
+  const [targetLanguage, setTargetLanguage] = useState(defaultValues.targetLanguage || "es");
   const [languageError, setLanguageError] = useState<string | null>(null);
 
   const documentTypes = [
@@ -73,44 +81,84 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
 
   const handleDocumentTypeChange = (value: string) => {
     setDocumentType(value);
-    onDocumentTypeChange(value);
   };
 
+  // Handles selecting multiple files, adds them to state, and triggers upload simulation
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setUploadStatus("idle");
-      setErrorMessage("");
+    if (e.target.files) {
+      const newFilesArray = Array.from(e.target.files);
+      const newUploads: UploadedFile[] = newFilesArray.map(file => ({
+        id: `${file.name}-${file.lastModified}-${file.size}`, // Create a semi-unique ID
+        file,
+        status: 'queued',
+      }));
+
+      setUploadedFiles(prevFiles => {
+        const updatedFiles = [...prevFiles, ...newUploads];
+        // Trigger upload simulation for each newly added file
+        newUploads.forEach(newUpload => {
+           // Pass the unique ID for identification
+           setTimeout(() => uploadFile(newUpload.id), 0);
+        });
+        return updatedFiles;
+      });
     }
+    // Reset the input value to allow selecting the same file again if removed
+    e.target.value = '';
   };
 
-  const handleUpload = () => {
-    if (!file) {
-      setUploadStatus("error");
-      setErrorMessage("Please select a file to upload");
-      return;
-    }
+   // Function to remove a file from the list
+   const handleRemoveFile = (idToRemove: string) => {
+     setUploadedFiles(prevFiles => prevFiles.filter(f => f.id !== idToRemove));
+     // TODO: If file was already uploaded, potentially delete from storage here
+   };
 
-    // Simulate upload process
-    setUploadStatus("uploading");
+  // Simulates uploading a file identified by its unique ID
+  const uploadFile = async (fileId: string) => {
+     // Use functional update to safely modify state based on previous state
+     // Mark as uploading
+     setUploadedFiles(prev => {
+        const fileIndex = prev.findIndex(f => f.id === fileId && f.status === 'queued');
+        if (fileIndex === -1) return prev;
+        console.log(`Starting simulated upload for: ${prev[fileIndex].file.name}`);
+        return prev.map((f, index) =>
+           index === fileIndex ? { ...f, status: 'uploading', progress: 0, error: undefined } : f
+        );
+     });
 
-    // Mock successful upload after 1.5 seconds
-    setTimeout(() => {
-      setUploadStatus("success");
-      onDocumentUpload(file);
-    }, 1500);
+     // Simulate progress
+     try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setUploadedFiles(prev => prev.map(f => f.id === fileId ? { ...f, progress: 30 } : f));
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setUploadedFiles(prev => prev.map(f => f.id === fileId ? { ...f, progress: 75 } : f));
+        await new Promise(resolve => setTimeout(resolve, 700));
+
+        // Simulate success/error
+        const success = Math.random() > 0.2; // 80% chance of success
+        if (success) {
+            setUploadedFiles(prev => prev.map(f =>
+              f.id === fileId ? { ...f, status: 'success', progress: 100, storagePath: `uploads/${f.file.name}` } : f // Store mock path
+            ));
+            console.log(`Simulated success for file ID: ${fileId}`);
+        } else {
+            throw new Error('Simulated upload failed');
+        }
+     } catch (error: any) {
+         console.error(`Simulated error for file ID: ${fileId}`, error);
+         setUploadedFiles(prev => prev.map(f =>
+           f.id === fileId ? { ...f, status: 'error', error: error.message || 'Upload failed', progress: undefined } : f
+         ));
+     }
   };
 
   const handleSourceLanguageChange = (value: string) => {
     setSourceLanguage(value);
-    onSourceLanguageChange(value);
     validateLanguagePair(value, targetLanguage);
   };
 
   const handleTargetLanguageChange = (value: string) => {
     setTargetLanguage(value);
-    onTargetLanguageChange(value);
     validateLanguagePair(sourceLanguage, value);
   };
 
@@ -124,19 +172,31 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
   };
 
   const handleContinue = () => {
-    // Validate document upload
-    if (uploadStatus !== "success") {
-      setUploadStatus("error");
-      setErrorMessage("Please upload a document before continuing");
-      return;
+    // Validate document uploads: Check if there are any files and if all have status 'success'
+    const successfulUploads = uploadedFiles.filter(f => f.status === 'success');
+
+    if (successfulUploads.length === 0) {
+       alert("Please upload at least one document successfully.");
+       return;
     }
+    if (successfulUploads.length !== uploadedFiles.length) {
+        alert("Some documents are still uploading or failed to upload. Please remove failed uploads or wait for uploads to complete.");
+        return;
+    }
+
 
     // Validate language pair
     if (!validateLanguagePair(sourceLanguage, targetLanguage)) {
       return;
     }
 
-    onNext();
+    // Pass collected data (including the array of successfully uploaded files) to the onNext handler
+    onNext({
+      documentType,
+      files: successfulUploads, // Pass only successfully uploaded files info
+      sourceLanguage,
+      targetLanguage,
+    });
   };
 
   const selectedDocumentType = documentTypes.find(
@@ -151,7 +211,7 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
             Document Upload & Language Selection
           </CardTitle>
           <CardDescription>
-            Upload your document and select the languages for translation
+            Upload your documents and select the languages for translation
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -182,17 +242,19 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
 
           {/* Document Upload */}
           <div className="space-y-2">
-            <Label htmlFor="document-upload">Upload Document</Label>
+            <Label htmlFor="document-upload">Upload Documents</Label>
             <div className="grid gap-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-900 transition-colors">
-                <div className="flex flex-col items-center justify-center space-y-3">
+              {/* Dropzone Area */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-900 transition-colors cursor-pointer"
+                   onClick={() => document.getElementById("document-upload")?.click()}>
+                <div className="flex flex-col items-center justify-center space-y-3 pointer-events-none"> {/* Prevent clicks on inner elements */}
                   <Upload className="h-10 w-10 text-muted-foreground" />
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium">
-                      Drag and drop your file here or click to browse
+                      Drag and drop files here or click to browse
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Supported formats: PDF, DOCX, JPG, PNG (Max 10MB)
+                      Supported formats: PDF, DOCX, JPG, PNG (Max 10MB each)
                     </p>
                   </div>
                   <Input
@@ -201,66 +263,56 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
                     className="hidden"
                     onChange={handleFileChange}
                     accept=".pdf,.docx,.jpg,.jpeg,.png"
+                    multiple // Allow multiple file selection
                   />
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      document.getElementById("document-upload")?.click()
-                    }
-                  >
-                    Browse Files
-                  </Button>
+                   {/* Button removed as the whole area is clickable */}
                 </div>
               </div>
 
-              {file && (
-                <div className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+              {/* Display list of uploaded files */}
+              {uploadedFiles.length > 0 && (
+                <div className="space-y-3 mt-4">
+                  <h4 className="text-sm font-medium text-gray-700">Selected Files:</h4>
+                  {uploadedFiles.map((uploadedFile) => (
+                    <div key={uploadedFile.id} className="flex items-center justify-between p-3 border rounded-md bg-muted/50 gap-2">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate" title={uploadedFile.file.name}>{uploadedFile.file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                          {uploadedFile.status === 'uploading' && uploadedFile.progress !== undefined && (
+                             <Progress value={uploadedFile.progress} className="h-1 mt-1" />
+                          )}
+                          {uploadedFile.status === 'success' && (
+                             <span className="text-xs text-green-600 flex items-center"><Check className="h-3 w-3 mr-1"/>Uploaded</span>
+                          )}
+                          {uploadedFile.status === 'error' && (
+                             <p className="text-xs text-destructive flex items-center" title={uploadedFile.error}>
+                               <AlertCircle className="h-3 w-3 mr-1"/> Error: {uploadedFile.error?.substring(0, 30) || 'Upload failed'}...
+                             </p>
+                          )}
+                           {uploadedFile.status === 'queued' && (
+                             <span className="text-xs text-gray-500">Queued for upload...</span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Remove Button */}
+                      <Button
+                           variant="ghost"
+                           size="icon"
+                           className="h-6 w-6 flex-shrink-0"
+                           onClick={() => handleRemoveFile(uploadedFile.id)}
+                           disabled={uploadedFile.status === 'uploading'} // Disable remove during upload
+                         >
+                           <X className="h-4 w-4" />
+                           <span className="sr-only">Remove file</span>
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFile(null)}
-                  >
-                    Remove
-                  </Button>
+                  ))}
                 </div>
               )}
-
-              {uploadStatus === "error" && (
-                <div className="flex items-center space-x-2 text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <p className="text-sm">{errorMessage}</p>
-                </div>
-              )}
-
-              {uploadStatus === "success" && (
-                <div className="flex items-center space-x-2 text-gray-900">
-                  <Check className="h-4 w-4" />
-                  <p className="text-sm">Document uploaded successfully</p>
-                </div>
-              )}
-
-              <Button
-                variant="outline"
-                onClick={handleUpload}
-                disabled={
-                  !file ||
-                  uploadStatus === "uploading" ||
-                  uploadStatus === "success"
-                }
-              >
-                {uploadStatus === "uploading"
-                  ? "Uploading..."
-                  : "Upload Document"}
-              </Button>
             </div>
           </div>
 
@@ -274,7 +326,6 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
                 Translation Languages
               </h3>
             </div>
-
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <Label htmlFor="source-language">Source Language</Label>
@@ -300,7 +351,6 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
                   The language your document is written in
                 </p>
               </div>
-
               <div className="space-y-4">
                 <Label htmlFor="target-language">Target Language</Label>
                 <Select
@@ -326,7 +376,6 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
                 </p>
               </div>
             </div>
-
             {languageError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600">
                 {languageError}
@@ -335,7 +384,7 @@ const DocumentAndLanguageStep: React.FC<DocumentAndLanguageStepProps> = ({
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => window.history.back()}>
+          <Button variant="outline" onClick={onBack}>
             Back
           </Button>
           <Button onClick={handleContinue}>Continue to Service Options</Button>

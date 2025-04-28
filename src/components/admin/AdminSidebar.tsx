@@ -3,12 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  FileText,
+  ShoppingCart,
   Users,
-  Settings,
-  HelpCircle,
-  BarChart,
-  CheckSquare,
+  FileText, // Icon for Quotes
+  Zap, // Added Zap icon for API Quotes
+  // Add other icons as needed
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -22,38 +21,33 @@ const AdminSidebar = () => {
     },
     {
       title: "Orders",
-      icon: <FileText className="h-5 w-5" />,
+      icon: <ShoppingCart className="h-5 w-5" />,
       href: "/admin/orders",
     },
     {
-      title: "Pending Orders",
-      icon: <CheckSquare className="h-5 w-5" />,
-      href: "/admin/pending-orders",
+      title: "Quotes", // Added Quotes link
+      icon: <FileText className="h-5 w-5" />,
+      href: "/admin/quotes",
+    },
+    {
+      title: "API Quotes", // Added API Quotes link
+      icon: <Zap className="h-5 w-5" />,
+      href: "/admin/api-quotes", // New route
     },
     {
       title: "Users",
       icon: <Users className="h-5 w-5" />,
       href: "/admin/users",
     },
-    {
-      title: "Analytics",
-      icon: <BarChart className="h-5 w-5" />,
-      href: "/admin/analytics",
-    },
-    {
-      title: "Settings",
-      icon: <Settings className="h-5 w-5" />,
-      href: "/admin/settings",
-    },
-    {
-      title: "Help & Support",
-      icon: <HelpCircle className="h-5 w-5" />,
-      href: "/admin/support",
-    },
+    // Add more admin links here
   ];
 
   return (
-    <aside className="w-64 bg-gray-800 text-white min-h-[calc(100vh-4rem)] p-4 hidden md:block">
+    <aside className="w-64 bg-gray-800 text-white border-r border-gray-700 min-h-screen p-4 hidden md:block">
+      <div className="mb-8">
+        {/* Optional: Add a logo or admin title here */}
+        <h2 className="text-lg font-semibold px-3">Admin Panel</h2>
+      </div>
       <nav className="space-y-1">
         {menuItems.map((item) => (
           <Link
@@ -61,8 +55,8 @@ const AdminSidebar = () => {
             to={item.href}
             className={cn(
               "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-              location.pathname === item.href
-                ? "bg-gray-900 text-white"
+              location.pathname === item.href || (location.pathname.startsWith(item.href) && item.href !== '/admin') // Highlight parent route
+                ? "bg-gray-700 text-white"
                 : "text-gray-300 hover:bg-gray-700 hover:text-white",
             )}
           >

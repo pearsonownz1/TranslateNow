@@ -94,7 +94,7 @@ const AdminHeader = ({ user }: AdminHeaderProps) => {
           <div className="flex items-center">
             <Link to="/admin" className="flex items-center">
               <Shield className="h-6 w-6 mr-2" />
-              <span className="text-xl font-bold">OpenTranslate Admin</span>
+              <span className="text-xl font-bold">OpenEval Admin</span>
             </Link>
           </div>
 

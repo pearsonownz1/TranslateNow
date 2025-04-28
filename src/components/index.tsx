@@ -77,7 +77,7 @@ const Index = () => {
       {/* Header */}
       <header className="bg-gray-900 text-white py-4 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold">OpenTranslate</h1>
+          <h1 className="text-3xl font-bold">OpenEval</h1>
         </div>
       </header>
 
@@ -175,7 +175,7 @@ const Index = () => {
       <footer className="bg-white border-t py-6 mt-12">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <div>© 2025 OpenTranslate, LLC. All Rights Reserved</div>
+            <div>© 2025 OpenEval, LLC. All Rights Reserved</div>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-gray-900">
                 Terms of Service

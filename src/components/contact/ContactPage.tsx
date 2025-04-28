@@ -4,39 +4,43 @@ import Footer from "../landing/Footer";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Card, CardContent } from "../ui/card";
+import { Card } from "../ui/card"; // Removed CardContent as we'll simplify
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 const ContactPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="pt-32 pb-10 bg-gray-50">
+      {/* Adjusted header padding and text sizes */}
+      <div className="pt-24 pb-10 bg-gray-50"> {/* Reduced pt */}
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-center">
+          <h1 className="text-3xl font-bold text-center"> {/* Adjusted size */}
             Contact Us
           </h1>
-          <p className="text-xl text-gray-600 text-center mt-4 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 text-center mt-2 max-w-3xl mx-auto"> {/* Adjusted size and mt */}
             Get in touch with our team for any questions or support
           </p>
         </div>
       </div>
 
-      <section className="py-20">
+      <section className="py-16"> {/* Adjusted padding */}
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Changed main layout grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column: Contact Form */}
             <div>
-              <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
+              <h2 className="text-xl font-semibold mb-6">Send Us a Message</h2> {/* Adjusted size/weight */}
+              {/* Added max-w-md and adjusted space-y */}
+              <form className="space-y-4 max-w-md">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Adjusted gap */}
+                  <div className="space-y-1.5"> {/* Adjusted space-y */}
+                    <label htmlFor="name" className="text-sm font-medium block"> {/* Added block */}
                       Full Name
                     </label>
                     <Input id="name" placeholder="John Smith" required />
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
+                  <div className="space-y-1.5"> {/* Adjusted space-y */}
+                    <label htmlFor="email" className="text-sm font-medium block"> {/* Added block */}
                       Email Address
                     </label>
                     <Input
@@ -48,8 +52,8 @@ const ContactPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium">
+                <div className="space-y-1.5"> {/* Adjusted space-y */}
+                  <label htmlFor="subject" className="text-sm font-medium block"> {/* Added block */}
                     Subject
                   </label>
                   <Input
@@ -59,8 +63,8 @@ const ContactPage = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">
+                <div className="space-y-1.5"> {/* Adjusted space-y */}
+                  <label htmlFor="message" className="text-sm font-medium block"> {/* Added block */}
                     Message
                   </label>
                   <Textarea
@@ -73,75 +77,69 @@ const ContactPage = () => {
 
                 <Button
                   type="submit"
-                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700" /* Adjusted width */
                 >
                   Send Message
                 </Button>
               </form>
             </div>
 
+            {/* Right Column: Contact Info */}
             <div>
-              <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardContent className="p-6 flex items-start space-x-4">
-                    <MapPin className="h-6 w-6 text-blue-600 mt-1" />
-                    <div>
-                      <h3 className="font-medium mb-2">Our Office</h3>
-                      <p className="text-gray-600">
-                        123 Translation Ave, Suite 101
-                        <br />
-                        New York, NY 10001
-                        <br />
-                        United States
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+              <h2 className="text-xl font-semibold mb-6">Contact Information</h2> {/* Adjusted size/weight */}
+              {/* Refactored contact info cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Office Card */}
+                <div className="rounded-xl border p-4 shadow-sm transition-shadow hover:shadow-md flex items-start space-x-3">
+                  <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm mb-1">Our Office</h3>
+                    <p className="text-sm text-gray-600">
+                      123 Translation Ave, Suite 101<br />
+                      New York, NY 10001<br />
+                      United States
+                    </p>
+                  </div>
+                </div>
 
-                <Card>
-                  <CardContent className="p-6 flex items-start space-x-4">
-                    <Phone className="h-6 w-6 text-blue-600 mt-1" />
-                    <div>
-                      <h3 className="font-medium mb-2">Phone</h3>
-                      <p className="text-gray-600">
-                        Toll-Free: (800) 123-4567
-                        <br />
-                        International: +1 212-555-7890
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Phone Card */}
+                <div className="rounded-xl border p-4 shadow-sm transition-shadow hover:shadow-md flex items-start space-x-3">
+                  <Phone className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm mb-1">Phone</h3>
+                    <p className="text-sm text-gray-600">
+                      Toll-Free: (800) 123-4567<br />
+                      International: +1 212-555-7890
+                    </p>
+                  </div>
+                </div>
 
-                <Card>
-                  <CardContent className="p-6 flex items-start space-x-4">
-                    <Mail className="h-6 w-6 text-blue-600 mt-1" />
-                    <div>
-                      <h3 className="font-medium mb-2">Email</h3>
-                      <p className="text-gray-600">
-                        General: info@translatenow.com
-                        <br />
-                        Support: support@translatenow.com
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Email Card */}
+                <div className="rounded-xl border p-4 shadow-sm transition-shadow hover:shadow-md flex items-start space-x-3">
+                  <Mail className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm mb-1">Email</h3>
+                    <p className="text-sm text-gray-600">
+                      General: info@translatenow.com<br />
+                      Support: support@translatenow.com
+                    </p>
+                  </div>
+                </div>
 
-                <Card>
-                  <CardContent className="p-6 flex items-start space-x-4">
-                    <Clock className="h-6 w-6 text-blue-600 mt-1" />
-                    <div>
-                      <h3 className="font-medium mb-2">Business Hours</h3>
-                      <p className="text-gray-600">
-                        Monday-Friday: 9am - 6pm EST
-                        <br />
-                        Saturday: 10am - 2pm EST
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Business Hours Card */}
+                <div className="rounded-xl border p-4 shadow-sm transition-shadow hover:shadow-md flex items-start space-x-3">
+                  <Clock className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm mb-1">Business Hours</h3>
+                    <p className="text-sm text-gray-600">
+                      Monday-Friday: 9am - 6pm EST<br />
+                      Saturday: 10am - 2pm EST
+                    </p>
+                  </div>
+                </div>
               </div>
 
+              {/* Urgent Assistance Box - kept as is for now */}
               <div className="mt-8 bg-gray-100 p-6 rounded-lg">
                 <h3 className="font-medium mb-2">Need Urgent Assistance?</h3>
                 <p className="text-gray-600 mb-4">

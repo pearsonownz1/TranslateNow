@@ -7,47 +7,47 @@ import {
 } from "@/components/ui/accordion";
 
 const FAQ = () => {
+  // Combined FAQs for Evaluation & Academic Translation
   const faqs = [
     {
-      question: "What is a certified translation?",
+      question: "What is a credential evaluation?",
       answer:
-        "A certified translation is a translation accompanied by a signed statement from the translator or translation company affirming that the translation is accurate and complete to the best of their knowledge. This certification makes the translation acceptable for official use with government agencies, educational institutions, and legal proceedings.",
+        "A credential evaluation assesses foreign academic/professional degrees against U.S. standards, providing an equivalency report for universities, employers, licensing boards, and USCIS.",
+    },
+     {
+      question: "What is a certified translation for academic documents?",
+      answer:
+        "It's a translation of your diploma, transcript, or other academic record accompanied by a signed statement from the translator attesting to its accuracy and completeness, making it suitable for official submission.",
     },
     {
-      question: "Are your translations accepted by USCIS?",
+      question: "Who accepts OpenEval reports and translations?",
       answer:
-        "Yes, our certified translations are accepted by USCIS (U.S. Citizenship and Immigration Services) and all other government agencies. We follow all USCIS requirements for certified translations, including the certification statement, translator's signature, and proper formatting.",
+        "Our evaluation reports and certified translations are widely accepted by U.S. universities, colleges, employers, licensing boards, and government agencies, including USCIS. We adhere to the highest standards.",
     },
     {
-      question: "How quickly can I get my documents translated?",
+      question: "Do I need both evaluation and translation?",
       answer:
-        "Our standard service delivers translations within 3-5 business days. For urgent needs, we offer expedited service with delivery in 1-2 business days, and premium service with same-day delivery (within 24 hours) for most document types and language pairs.",
+        "If your documents are not in English, you typically need both. The certified translation makes the document understandable, and the evaluation assesses its U.S. equivalency. Check the requirements of the institution you're applying to.",
     },
     {
-      question: "What languages do you translate?",
+      question: "What's the difference between General and Course-by-Course evaluation?",
       answer:
-        "We offer translation services for over 120 languages, including Spanish, French, Chinese, Arabic, Russian, Portuguese, German, Japanese, Korean, and many more. All translations are performed by native speakers with expertise in the relevant subject matter.",
+        "A General evaluation provides the U.S. equivalency of your degree. A Course-by-Course evaluation adds a detailed breakdown of subjects, credits, grades, and GPA, often required for university admission or transfer.",
     },
     {
-      question: "Do I need to mail my original documents?",
+      question: "How long does the process take?",
       answer:
-        "No, you don't need to mail your original documents. You can simply upload digital copies (scans or photos) of your documents through our secure platform. We'll translate from these digital copies and provide you with certified translations.",
+        "Standard turnaround is typically 5-10 business days for evaluations and 1-3 days for translations. Rush options are available for both services.",
     },
     {
-      question:
-        "What is the difference between certified and notarized translations?",
+      question: "How much do these services cost?",
       answer:
-        "A certified translation includes a signed statement from the translator attesting to the accuracy of the translation. A notarized translation takes this one step further by having the translator's signature authenticated by a notary public. Some organizations specifically require notarized translations, though certified translations are sufficient for most purposes including USCIS submissions.",
+        "Credential Evaluations start at $99, and Certified Academic Translations start at $24.99 per page. Bundle options are available. See our Pricing section for details.",
     },
     {
-      question: "How much does a certified translation cost?",
+      question: "Do I need to send original documents?",
       answer:
-        "Our pricing starts at $24.99 per page for standard service. The final cost depends on the document type, language pair, service level (standard, expedited, or premium), and any additional services like notarization or physical delivery. You'll receive a clear price quote before confirming your order.",
-    },
-    {
-      question: "What if my translation is rejected?",
-      answer:
-        "We offer a 100% acceptance guarantee. If your translation is rejected by any official institution due to quality issues or non-compliance with their requirements, we'll revise it for free or provide a full refund. However, this is extremely rare as our translations meet all official standards.",
+        "No, clear digital copies (scans or photos) uploaded through our secure portal are usually sufficient for both evaluation and translation.",
     },
   ];
 
@@ -59,8 +59,7 @@ const FAQ = () => {
             Frequently Asked Questions
           </h2>
           <p className="text-xl text-gray-600">
-            Find answers to common questions about our certified translation
-            services
+            Answers to common questions about credential evaluation and academic translation.
           </p>
         </div>
 

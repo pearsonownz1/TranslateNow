@@ -1,5 +1,6 @@
 import React from "react";
-import { FileUp, Languages, Clock, CreditCard, FileCheck } from "lucide-react";
+// Update icons for evaluation & translation steps
+import { FileUp, Languages, ClipboardList, Mail, CheckSquare } from "lucide-react";
 
 interface StepProps {
   number: number;
@@ -26,41 +27,35 @@ const Step = ({ number, title, description, icon }: StepProps) => (
 );
 
 const HowItWorks = () => {
+  // Combined steps for Evaluation & Academic Translation
   const steps = [
     {
       number: 1,
-      title: "Upload Your Documents",
+      title: "Submit Documents",
       description:
-        "Simply upload the documents you need translated through our secure platform.",
+        "Securely upload your academic documents (transcripts, diplomas) for evaluation and/or translation.",
       icon: <FileUp className="h-5 w-5" />,
     },
     {
       number: 2,
-      title: "Select Languages",
+      title: "Select Services",
       description:
-        "Choose the source language of your document and the target language for translation.",
-      icon: <Languages className="h-5 w-5" />,
+        "Choose credential evaluation (General or Course-by-Course) and/or certified translation for required languages.",
+      icon: <CheckSquare className="h-5 w-5" />, // Icon for selecting services
     },
     {
       number: 3,
-      title: "Choose Service Level",
+      title: "Expert Processing",
       description:
-        "Select from standard, expedited, or certified translation services based on your needs.",
-      icon: <Clock className="h-5 w-5" />,
+        "Our qualified evaluators assess U.S. equivalency, and certified translators handle academic document translation.",
+      icon: <ClipboardList className="h-5 w-5" />,
     },
-    {
-      number: 4,
-      title: "Secure Payment",
+     {
+      number: 4, // Renumbered
+      title: "Receive Your Reports",
       description:
-        "Complete your order with our secure payment system. We accept all major credit cards.",
-      icon: <CreditCard className="h-5 w-5" />,
-    },
-    {
-      number: 5,
-      title: "Receive Translations",
-      description:
-        "Get your professionally translated and certified documents delivered to you.",
-      icon: <FileCheck className="h-5 w-5" />,
+        "Your official evaluation report and/or certified translations are delivered securely.",
+      icon: <Mail className="h-5 w-5" />,
     },
   ];
 
@@ -68,9 +63,9 @@ const HowItWorks = () => {
     <section className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple Steps to Success</h2>
           <p className="text-xl text-gray-600">
-            Get your certified translations in just a few simple steps
+            Get your credential evaluation and academic translations easily.
           </p>
         </div>
 

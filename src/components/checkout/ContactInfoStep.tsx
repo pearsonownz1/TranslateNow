@@ -21,7 +21,7 @@ const contactFormSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
-type ContactFormValues = z.infer<typeof contactFormSchema>;
+export type ContactFormValues = z.infer<typeof contactFormSchema>; // Added export
 
 interface ContactInfoStepProps {
   onNext?: (data: ContactFormValues) => void;

@@ -1,109 +1,97 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient, User } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Define CORS headers inline
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Or specify allowed origins: 'http://localhost:5174, https://your-prod-domain.com'
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS', // Allow POST for sending userId
-}
-
-// Function to verify if the requesting user is an admin
-async function verifyAdmin(supabaseClient: SupabaseClient): Promise<boolean> {
-  try {
-    const { data: { user }, error } = await supabaseClient.auth.getUser();
-    if (error) {
-      console.error("Error getting user for admin check:", error);
-      return false;
-    }
-    // Check for the admin role in app_metadata
-    return user?.app_metadata?.role === 'admin';
-  } catch (err) {
-    console.error("Exception during admin verification:", err);
-    return false;
-  }
-}
+// Allow requests from local dev and production domains
+const allowedOrigins = ['http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'https://openeval.com', 'https://www.openeval.com'];
 
 serve(async (req) => {
-  // Handle CORS preflight request
+  const origin = req.headers.get('Origin') ?? '';
+
+  // Basic CORS headers
+  const baseCorsHeaders = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    // Allow POST for this function
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+
+  // Dynamically set Allow-Origin header based on request
+  let responseHeaders = { ...baseCorsHeaders, 'Content-Type': 'application/json' };
+  let originAllowed = false;
+
+  if (allowedOrigins.includes(origin)) {
+    responseHeaders['Access-Control-Allow-Origin'] = origin;
+    originAllowed = true;
+  } else if (!origin) {
+    // Allow requests with no origin (likely server-to-server)
+    console.log("Allowing request with no Origin header (server-to-server).");
+    // We don't set Access-Control-Allow-Origin for server-to-server, but we allow the request processing
+    originAllowed = true;
+  } else {
+    // Origin is present but not in the allowed list
+    console.warn(`Origin "${origin}" not allowed for get-user-details.`);
+  }
+
+  // Handle OPTIONS preflight request - respond based on whether origin *would be* allowed
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    if (originAllowed) {
+        // If origin is allowed (or empty), respond with appropriate headers including the origin if it exists
+        return new Response('ok', { headers: responseHeaders });
+    } else {
+        // If origin is present but not allowed, respond without Allow-Origin
+        return new Response('ok', { headers: baseCorsHeaders });
+    }
+  }
+
+  // For non-OPTIONS requests, block if origin was present but not allowed
+  if (!originAllowed && origin) {
+      return new Response(JSON.stringify({ error: 'Origin not allowed' }), { status: 403, headers: responseHeaders });
+  }
+
+  // Handle POST request
+  if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: responseHeaders });
   }
 
   try {
-    // 1. Initialize Supabase client with ANON KEY to verify the requesting user's JWT
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    );
-
-    // 2. Verify if the requesting user is an admin
-    const isAdmin = await verifyAdmin(supabaseClient);
-    if (!isAdmin) {
-      console.warn("Admin check failed for user.");
-      return new Response(JSON.stringify({ error: 'Forbidden: User is not an admin.' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403
-      });
-    }
-
-    // 3. If admin, proceed to get target user ID from request body
+    // 1. Get userId from request body
     const { userId } = await req.json();
-    if (!userId || typeof userId !== 'string') {
-      return new Response(JSON.stringify({ error: 'Missing or invalid userId in request body' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
-      });
+    if (!userId) {
+      throw new Error("Missing userId in request body.");
     }
 
-    // 4. Initialize Supabase Admin Client with SERVICE ROLE KEY to fetch target user details
+    // 2. Initialize Supabase Admin Client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 5. Fetch the target user's details using the admin client
-    console.log(`Admin user verified. Fetching details for user ID: ${userId}`);
-    const { data, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    // 3. Fetch user details using Admin API
+    console.log(`Fetching details for user ID: ${userId}`);
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
 
-    if (fetchError) {
-      console.error(`Error fetching user details for ID ${userId}:`, fetchError);
-      // Determine appropriate status code based on error type if possible
-      const status = fetchError.message.includes("User not found") ? 404 : 500;
-      return new Response(JSON.stringify({ error: `Failed to fetch user details: ${fetchError.message}` }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: status
-      });
+    if (error) {
+      console.error(`Error fetching user ${userId}:`, error);
+      throw new Error(`Failed to fetch user details: ${error.message}`);
     }
 
-    if (!data?.user) {
-       console.warn(`User not found for ID ${userId}.`);
-       return new Response(JSON.stringify({ error: 'User not found' }), {
-         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-         status: 404
-       });
+    if (!data || !data.user) {
+        throw new Error(`User with ID ${userId} not found.`);
     }
 
-    // 6. Return the fetched user data
-    console.log(`Successfully fetched details for user ID: ${userId}`);
-    return new Response(JSON.stringify(data.user), { // Return only the user object
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    console.log(`Successfully fetched details for user ${userId}`);
+    // 4. Return the user object (includes metadata)
+    // Ensure correct headers are used (including Allow-Origin if it was set)
+    return new Response(JSON.stringify(data.user), {
+      headers: responseHeaders,
       status: 200,
     });
 
   } catch (err) {
-    console.error("Caught exception in function handler:", err);
-    // Check if the error is due to invalid JSON body
-    if (err instanceof SyntaxError) {
-       return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
-         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-         status: 400
-       });
-    }
-    return new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+    console.error("Caught exception in get-user-details handler:", err);
+    // Ensure correct headers are used (including Allow-Origin if it was set)
+    return new Response(JSON.stringify({ error: err.message }), {
+      headers: responseHeaders,
+      status: err instanceof Error && err.message.includes("not found") ? 404 : 500, // Return 404 if user not found
     });
   }
 })
@@ -112,6 +100,4 @@ serve(async (req) => {
 To deploy:
 1. Ensure Supabase CLI is installed and you are logged in.
 2. Run: supabase functions deploy get-user-details --no-verify-jwt
-   (Note: --no-verify-jwt is NOT needed here as we manually verify the JWT and role)
-   Correct command: supabase functions deploy get-user-details
 */

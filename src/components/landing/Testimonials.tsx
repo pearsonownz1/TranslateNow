@@ -44,29 +44,30 @@ const Testimonial = ({
 );
 
 const Testimonials = () => {
+  // Combined testimonials for Evaluation & Academic Translation
   const testimonials = [
     {
       quote:
-        "The certified translation was delivered ahead of schedule and accepted by USCIS without any issues. Highly recommend their services!",
-      author: "Maria Rodriguez",
-      role: "Immigration Applicant",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria",
+        "OpenEval's credential evaluation was exactly what I needed for my master's application. The university accepted the report without any problems. Very professional service!",
+      author: "Priya Sharma",
+      role: "Graduate Student Applicant",
+      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
       rating: 5,
     },
     {
       quote:
-        "As an immigration attorney, I've worked with many translation services, but OpenTranslate consistently delivers the highest quality certified translations.",
-      author: "David Chen",
-      role: "Immigration Attorney",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+        "Needed my diploma translated and evaluated for a job application. OpenEval handled both quickly and the certified translation was perfect. Highly recommend!",
+      author: "Kenji Tanaka",
+      role: "International Professional",
+      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kenji", // New seed
       rating: 5,
     },
     {
       quote:
-        "I needed my academic transcripts translated urgently for a university application. They delivered in just 24 hours and the university accepted them without question.",
-      author: "Sophia Kim",
-      role: "International Student",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia",
+        "The Course-by-Course evaluation and transcript translation helped me transfer my credits smoothly. The process was straightforward and the report was detailed.",
+      author: "Carlos Gomez",
+      role: "Transfer Student",
+      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos",
       rating: 5,
     },
   ];
@@ -76,10 +77,10 @@ const Testimonials = () => {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            What Our Clients Say
+            Success Stories: Evaluations & Translations
           </h2>
           <p className="text-xl text-gray-600">
-            Trusted by thousands of clients for certified document translations
+            Hear from students and professionals who trust our academic services.
           </p>
         </div>
 

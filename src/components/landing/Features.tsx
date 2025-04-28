@@ -1,12 +1,12 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Shield,
   Clock,
   Award,
-  Globe,
-  FileCheck,
-  CreditCard,
+  Users,
+  FileText,
+  Lock,
+  Languages, // Added for translation feature
 } from "lucide-react";
 
 interface FeatureCardProps {
@@ -28,42 +28,43 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
 );
 
 const Features = () => {
+  // Combined features for Evaluation & Academic Translation
   const features = [
     {
-      icon: <Shield className="h-6 w-6" />,
-      title: "100% Acceptance Guarantee",
+      icon: <Award className="h-6 w-6" />,
+      title: "Widely Accepted Reports",
       description:
-        "Our certified translations are accepted by USCIS, universities, and all government agencies worldwide.",
+        "Credential evaluations and certified translations accepted by USCIS, universities, employers, and licensing boards.",
     },
     {
       icon: <Clock className="h-6 w-6" />,
-      title: "Fast Turnaround",
+      title: "Fast & Reliable Turnaround",
       description:
-        "Get your certified translations in as little as 24 hours with our expedited service options.",
+        "Choose from standard or rush processing options for both evaluations and translations to meet your deadlines.",
     },
     {
-      icon: <Award className="h-6 w-6" />,
-      title: "Certified & Notarized",
+      icon: <Users className="h-6 w-6" />,
+      title: "Expert Evaluators & Translators",
       description:
-        "All translations include certification statements, stamps, and signatures as required by official institutions.",
+        "Experienced professionals ensure accurate U.S. equivalency assessments and certified academic translations.",
     },
     {
-      icon: <Globe className="h-6 w-6" />,
-      title: "120+ Languages",
+      icon: <FileText className="h-6 w-6" />,
+      title: "Comprehensive Services",
       description:
-        "Professional translation services available in over 120 languages with native-speaking translators.",
+        "Offering General, Course-by-Course evaluations and certified translations for diplomas, transcripts, and degrees.",
+    },
+     {
+      icon: <Languages className="h-6 w-6" />, // Added Languages icon
+      title: "Certified Translations",
+      description:
+        "Accurate, certified translations of your academic documents required for evaluation or submission.",
     },
     {
-      icon: <FileCheck className="h-6 w-6" />,
-      title: "Human Translation",
+      icon: <Lock className="h-6 w-6" />,
+      title: "Secure & Confidential",
       description:
-        "Every document is translated by professional human translators, not machine translation.",
-    },
-    {
-      icon: <CreditCard className="h-6 w-6" />,
-      title: "Transparent Pricing",
-      description:
-        "Clear, upfront pricing with no hidden fees. Pay only for what you need with our flexible service options.",
+        "We handle your sensitive documents with the utmost confidentiality and security throughout the process.",
     },
   ];
 
@@ -72,11 +73,10 @@ const Features = () => {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Why Choose Our Translation Services
+            Your Trusted Partner for Academic Credentials
           </h2>
           <p className="text-xl text-gray-600">
-            Professional document translation services you can trust for all
-            your official needs
+            Accurate credential evaluations and certified translations for your U.S. academic and professional goals.
           </p>
         </div>
 

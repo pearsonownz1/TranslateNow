@@ -5,7 +5,7 @@ import { Session } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from 'uuid'; // Import uuid generator
 import { Toaster } from "./components/ui/toaster";
 import { Suspense, lazy } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react"; // Keep Loader2 import
 import Home from "./components/home";
 import LandingPage from "./components/landing/LandingPage";
 import CheckoutLayout from "./components/checkout/CheckoutLayout";
@@ -32,6 +32,7 @@ const OrderConfirmation = lazy( // Keep this for now, might reuse later or remov
 const PaymentSuccessPage = lazy( // Import the new success page
   () => import("./components/checkout/PaymentSuccessPage"),
 );
+const QuotePaymentStep = lazy(() => import("./components/checkout/QuotePaymentStep")); // Lazy load QuotePaymentStep
 
 // Lazy load page components
 const PricingPage = lazy(() => import("./components/pricing/PricingPage"));
@@ -42,6 +43,7 @@ const LegalPage = lazy(() => import("./components/solutions/LegalPage"));
 const AcademicPage = lazy(() => import("./components/solutions/AcademicPage"));
 const BusinessPage = lazy(() => import("./components/solutions/BusinessPage"));
 const PersonalPage = lazy(() => import("./components/solutions/PersonalPage"));
+const CredentialEvaluationPage = lazy(() => import("./components/solutions/CredentialEvaluationPage")); // Import new page
 
 const ResourcesPage = lazy(
   () => import("./components/resources/ResourcesPage"),
@@ -50,8 +52,17 @@ const ContactPage = lazy(() => import("./components/contact/ContactPage"));
 const LoginPage = lazy(() => import("./components/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./components/auth/RegisterPage"));
 const CallbackPage = lazy(() => import("./components/auth/CallbackPage"));
-const EmailVerifiedPage = lazy(() => import("./components/auth/EmailVerifiedPage")); // Import the new page
+const EmailVerifiedPage = lazy(() => import("./components/auth/EmailVerifiedPage"));
 const QuotePage = lazy(() => import("./components/quote/QuotePage"));
+// New Company/Legal Pages
+const AboutPage = lazy(() => import("./components/company/AboutPage"));
+const BlogPage = lazy(() => import("./components/blog/BlogPage"));
+const CareersPage = lazy(() => import("./components/company/CareersPage"));
+const TermsPage = lazy(() => import("./components/legal/TermsPage"));
+const PrivacyPage = lazy(() => import("./components/legal/PrivacyPage"));
+const CookiePage = lazy(() => import("./components/legal/CookiePage"));
+const ApiDocsPage = lazy(() => import("./components/api/ApiDocsPage")); // Import the new API docs page
+
 
 // Dashboard components
 const DashboardLayout = lazy(
@@ -64,7 +75,13 @@ const OrdersPage = lazy(() => import("./components/dashboard/OrdersPage"));
 const OrderDetailsPage = lazy(
   () => import("./components/dashboard/OrderDetailsPage"),
 );
-const SettingsPage = lazy(() => import("./components/dashboard/SettingsPage")); // Import SettingsPage
+const SettingsPage = lazy(() => import("./components/dashboard/SettingsPage"));
+const PaymentMethodsPage = lazy(() => import("./components/dashboard/PaymentMethodsPage")); // Import PaymentMethodsPage
+const AddressesPage = lazy(() => import("./components/dashboard/AddressesPage")); // Import AddressesPage
+const IntegrationsPage = lazy(() => import("./components/dashboard/IntegrationsPage")); // Import the new Integrations page
+const QuoteRequestPage = lazy(() => import("./components/dashboard/QuoteRequestPage"));
+// Removed import for QuoteSuccessPage
+const MyQuotesPage = lazy(() => import("./components/dashboard/MyQuotesPage")); // Import MyQuotesPage
 
 
 // Admin components
@@ -80,6 +97,11 @@ const AdminUsersPage = lazy(() => import("./components/admin/AdminUsersPage"));
 const AdminOrderDetailsPage = lazy(
   () => import("./components/admin/AdminOrderDetailsPage"),
 );
+const AdminQuotesPage = lazy(() => import("./components/admin/AdminQuotesPage"));
+const AdminApiQuotesPage = lazy(() => import("./components/admin/AdminApiQuotesPage"));
+const AdminQuoteDetailsPage = lazy(() => import("./components/admin/AdminQuoteDetailsPage"));
+const ClientBillingDetails = lazy(() => import("./components/admin/ClientBillingDetails"));
+const AdminUserDetailsPage = lazy(() => import("./components/admin/AdminUserDetailsPage")); // Import User Details Page
 
 // Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -117,6 +139,77 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   return <>{children}</>;
 };
+
+// Helper component for admin route element to fetch session and pass user prop
+const AdminRouteElement = () => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Use navigate hook
+
+  useEffect(() => {
+    setLoading(true);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+      if (!session) {
+       console.log("AdminRouteElement: No session found, redirecting to login.");
+       navigate('/login', { replace: true }); // Redirect if not logged in
+      } else if (session.user.app_metadata?.role !== 'admin') {
+        // User is logged in, but NOT an admin
+        console.log("AdminRouteElement: User is not admin, redirecting to home.");
+        navigate('/', { replace: true }); // Redirect non-admins away
+      }
+      // If session exists AND user is admin, loading is complete, proceed to render AdminLayout
+    }); // Correctly placed closing parenthesis and semicolon
+
+    // Listen for auth changes (e.g., logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+        console.log("AdminRouteElement: Session lost, redirecting to login.");
+        navigate('/login', { replace: true }); // Redirect if logged out
+      } else if (session.user.app_metadata?.role !== 'admin') {
+        // Also check role on auth state change
+        console.log("AdminRouteElement: User role changed/not admin, redirecting to home.");
+        navigate('/', { replace: true }); // Redirect non-admins away
+      }
+    }); // Correctly placed closing parenthesis and semicolon
+
+    return () => subscription.unsubscribe();
+  }, [navigate]); // Add navigate to dependency array
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        {/* Use the imported Loader2 component */}
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+   // If loading is false and session is null OR user is not admin, redirection should have happened.
+   // Render null or a minimal message, but navigation is the primary mechanism.
+   if (!session || session.user.app_metadata?.role !== 'admin') {
+     // Added role check here as well for robustness before rendering
+     return null; // Or a message like <p>Redirecting...</p>
+   }
+
+   // Construct user object for AdminLayout (only if user is admin)
+  // Ensure user_metadata exists and has the expected properties
+  const userMetaData = session.user.user_metadata || {};
+  const firstName = userMetaData.first_name || '';
+  const lastName = userMetaData.last_name || '';
+  const user = {
+    name: `${firstName} ${lastName}`.trim() || session.user.email || 'Admin User', // Fallback logic
+    email: session.user.email || 'admin@example.com', // Fallback logic
+  };
+
+  // Render AdminLayout, passing the user prop.
+  // React Router's <Outlet> will be implicitly passed as children
+  // for the nested routes defined within this Route element.
+  return <AdminLayout user={user} />;
+};
+
 
 import { ContactFormValues } from "./components/checkout/ContactInfoStep";
 // Import the specific types needed from DocumentAndLanguageStep
@@ -256,16 +349,18 @@ const CheckoutFlow = () => {
 
     // **IMPORTANT**: Map orderData state to your actual 'orders' table columns
     // Calculate the final price based on selections
-    const { total } = calculateTotal(orderData); // Calculate total price
+    const { subtotal, total } = calculateTotal(orderData); // Calculate subtotal and total price (removed tax)
 
     // Log the document language data before accessing it
     console.log("Document Language Data in saveOrder:", orderData.documentLanguage);
 
     // Generate a UUID for the document_id column
     const generatedDocId = uuidv4();
-    // console.log("Generated UUID for document_id:", generatedDocId); // No longer generating UUID here
+    // Generate a UUID for the order_number column
+    const generatedOrderNumber = uuidv4();
 
     const orderToInsert = {
+      order_number: generatedOrderNumber, // Add the generated order number
       user_id: session.user.id,
       email: orderData.contactInfo.email, // Can assume contactInfo exists due to check above
       full_name: orderData.contactInfo.fullName,
@@ -276,28 +371,32 @@ const CheckoutFlow = () => {
       // Adjust based on how you want to store multiple file references in your DB
       // Option 1: Store as JSON array of paths (if column type is jsonb) - Ensure storagePath is set!
       document_paths: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean),
-      // document_id: generatedDocId, // Completely removed document_id from insert object
+      document_id: generatedDocId, // Re-enabled document_id generation
       // Option 2: Store as comma-separated string (less flexible)
       // document_paths_csv: orderData.documentLanguage.files.map(f => f.storagePath).filter(Boolean).join(','),
       // Option 3: If you have a separate related table for documents, insert records there.
 
       service_level: orderData.serviceOptions.serviceId,
-      delivery_option: orderData.deliveryOptions.deliveryId,
+      delivery_method: orderData.deliveryOptions.deliveryId, // Corrected key name
       status: 'pending', // Initial status
-      total_price: total, // Add calculated total price
+      subtotal: subtotal, // Add calculated subtotal
+      tax: 0,           // Add tax field with default value 0 to satisfy DB constraint
+      total: total, // Corrected key name to match DB column 'total'
       // Add any other relevant fields from your DB schema
     };
+
+    console.log("Attempting to insert order with user_id:", orderToInsert.user_id); // Log the user_id being used
 
     const { data, error } = await supabase
       .from('orders') // **Ensure this is your correct table name**
       .insert([orderToInsert])
-      .select(); // Optionally select the inserted data
+       .select(); // Optionally select the inserted data
 
-    if (error) {
-      console.error("Error saving order:", error);
-      // Handle error - show message to user, maybe don't navigate
-      // Example: toast({ title: "Error", description: "Could not save your order.", variant: "destructive" });
-      return false; // Indicate failure
+     if (error) {
+       console.error("Detailed Error saving order:", JSON.stringify(error, null, 2)); // Log full error object
+       // Handle error - show message to user, maybe don't navigate
+       // Example: toast({ title: "Error", description: "Could not save your order.", variant: "destructive" });
+       return false; // Indicate failure
     } else {
       console.log("Order saved successfully:", data);
       const savedOrder = data[0];
@@ -335,13 +434,13 @@ const CheckoutFlow = () => {
 
   // Helper function to calculate total price (needed for email)
   // TODO: Refactor this to be shared with PaymentStep or move to a utility file
-  const calculateTotal = (data: OrderData): { subtotal: number, tax: number, total: number, amountInCents: number } => {
+  const calculateTotal = (data: OrderData): { subtotal: number, total: number, amountInCents: number } => { // Removed tax from return type
       let subtotal = 0;
       const PRICES = { // Duplicated from PaymentStep - refactor needed
           document: { standard: 50, certificate: 75, legal: 100, medical: 120, technical: 90 },
           service: { standard: 0, expedited: 30, certified: 50 },
           delivery: { digital: 0, physical: 20, 'expedited-physical': 35 },
-          taxRate: 0.08,
+          // taxRate: 0.08, // Removed taxRate
       };
       const docType = data.documentLanguage?.documentType as keyof typeof PRICES.document | undefined;
       if (docType && PRICES.document[docType] !== undefined) subtotal += PRICES.document[docType];
@@ -349,10 +448,10 @@ const CheckoutFlow = () => {
       if (serviceId && PRICES.service[serviceId] !== undefined) subtotal += PRICES.service[serviceId];
       const deliveryId = data.deliveryOptions?.deliveryId as keyof typeof PRICES.delivery | undefined;
       if (deliveryId && PRICES.delivery[deliveryId] !== undefined) subtotal += PRICES.delivery[deliveryId];
-      const tax = subtotal * PRICES.taxRate;
-      const total = subtotal + tax;
+      // const tax = subtotal * PRICES.taxRate; // Removed tax calculation
+      const total = subtotal; // Total is now just the subtotal
       const amountInCents = Math.round(total * 100);
-      return { subtotal, tax, total, amountInCents };
+      return { subtotal, total, amountInCents }; // Removed tax from return object
   };
 
 
@@ -390,11 +489,13 @@ const CheckoutFlow = () => {
           path="payment"
           // Pass relevant orderData down to PaymentStep for calculation/display
            element={<PaymentStep orderData={orderData} onComplete={handlePaymentComplete} onBack={handlePaymentBack} />}
-         />
-         {/* <Route path="confirmation" element={<OrderConfirmation />} />  // Comment out or remove old confirmation route */}
-         <Route path="success" element={<PaymentSuccessPage />} /> {/* Add route for the new success page */}
-       </Route>
-     </Routes>
+        />
+        {/* <Route path="confirmation" element={<OrderConfirmation />} />  // Comment out or remove old confirmation route */}
+        <Route path="success" element={<PaymentSuccessPage />} /> {/* Add route for the new success page */}
+        {/* Add route for paying a specific quote */}
+        <Route path="pay-quote/:quoteId" element={<QuotePaymentStep />} />
+      </Route>
+    </Routes>
    </Elements>
   );
 };
@@ -422,13 +523,23 @@ function App() {
             <Route path="/solutions/academic" element={<AcademicPage />} />
             <Route path="/solutions/business" element={<BusinessPage />} />
             <Route path="/solutions/personal" element={<PersonalPage />} />
+            <Route path="/credential-evaluation" element={<CredentialEvaluationPage />} /> {/* Add route for new page */}
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/callback" element={<CallbackPage />} />
-            <Route path="/email-verified" element={<EmailVerifiedPage />} /> {/* Add route for email verification page */}
+            <Route path="/email-verified" element={<EmailVerifiedPage />} />
             <Route path="/quote" element={<QuotePage />} />
+            {/* Added routes for new pages */}
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/cookies" element={<CookiePage />} />
+            <Route path="/api-docs" element={<ApiDocsPage />} /> {/* Add route for API Docs */}
+
 
             {/* Dashboard routes */}
             <Route
@@ -442,17 +553,30 @@ function App() {
               <Route index element={<DashboardHome />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="orders/:orderId" element={<OrderDetailsPage />} />
-              <Route path="settings" element={<SettingsPage />} /> {/* Add route for SettingsPage */}
+              <Route path="my-quotes" element={<MyQuotesPage />} /> {/* Add route for MyQuotesPage */}
+              <Route path="settings" element={<SettingsPage />} /> {/* Keep general settings */}
+              <Route path="payment-methods" element={<PaymentMethodsPage />} /> {/* Add route for Payment Methods */}
+              <Route path="addresses" element={<AddressesPage />} /> {/* Add route for Addresses */}
+              <Route path="integrations" element={<IntegrationsPage />} /> {/* Add route for Integrations */}
+              <Route path="request-quote" element={<QuoteRequestPage />} />
+              {/* Removed route for QuoteSuccessPage */}
               {/* Add routes for Billing, Support etc. if needed */}
             </Route>
 
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            {/* Admin routes - Use the helper component */}
+            <Route path="/admin" element={<AdminRouteElement />}>
               <Route index element={<AdminDashboard />} />
               <Route path="orders" element={<AdminOrdersPage />} />
+              <Route path="quotes" element={<AdminQuotesPage />} />
+              <Route path="api-quotes" element={<AdminApiQuotesPage />} /> {/* Add route for API Quotes */}
               <Route path="pending-orders" element={<AdminPendingOrdersPage />} />
               <Route path="users" element={<AdminUsersPage />} />
+              {/* Route for the main user detail page with tabs */}
+              <Route path="users/:userId/:tab?" element={<AdminUserDetailsPage />} />
+              {/* Keep the specific billing route? Or rely on tab navigation? Let's remove it for now assuming tab nav is sufficient */}
+              {/* <Route path="users/:userId/billing" element={<ClientBillingDetails />} /> */}
               <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
+              <Route path="quotes/:quoteId" element={<AdminQuoteDetailsPage />} />
             </Route>
 
             {/* Use the CheckoutFlow component for checkout routes */}

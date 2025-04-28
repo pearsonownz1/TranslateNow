@@ -18,6 +18,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 const RegisterPage = () => {
+  const [firstName, setFirstName] = useState(""); // Added first name state
+  const [lastName, setLastName] = useState(""); // Added last name state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,11 +46,39 @@ const RegisterPage = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            first_name: firstName, // Pass first name as metadata
+            last_name: lastName,   // Pass last name as metadata
+            // Supabase uses 'full_name' in some contexts, consider adding it too if needed elsewhere
+            // full_name: `${firstName} ${lastName}`
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`, // Or maybe /email-verified?
         },
       });
 
       if (error) throw error;
+
+      // Insert user data into public.users table
+      if (data.user) {
+        const { error: insertError } = await supabase.from("users").insert({
+          id: data.user.id,
+          // Use the email from the input state as data.user.email might be null
+          // if email confirmation is required. A trigger might handle the final email update.
+          email: email,
+          full_name: `${firstName} ${lastName}`,
+        });
+
+        if (insertError) {
+          console.error("Error inserting user into public.users:", insertError);
+          // Throw a more specific error to be caught by the outer catch block
+          throw new Error(`Failed to save user profile: ${insertError.message}`);
+        }
+      } else {
+         // Handle case where user object is unexpectedly null after successful signup
+         console.error("Supabase signUp succeeded but returned no user object.");
+         // Throw an error to prevent proceeding without the user record being created
+         throw new Error("Registration completed but failed to save profile information.");
+      }
 
       toast({
         title: "Registration successful",
@@ -80,11 +110,34 @@ const RegisterPage = () => {
                   Create your account
                 </CardTitle>
                 <CardDescription className="text-center">
-                  Sign up to start using OpenTranslate
+                  Sign up to start using OpenEval
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleRegister}>
                 <CardContent className="space-y-4">
+                   {/* Added First Name and Last Name Fields */}
+                   <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                       <Label htmlFor="firstName">First Name</Label>
+                       <Input
+                         id="firstName"
+                         placeholder="Enter your first name"
+                         value={firstName}
+                         onChange={(e) => setFirstName(e.target.value)}
+                         required
+                       />
+                     </div>
+                     <div className="space-y-2">
+                       <Label htmlFor="lastName">Last Name</Label>
+                       <Input
+                         id="lastName"
+                         placeholder="Enter your last name"
+                         value={lastName}
+                         onChange={(e) => setLastName(e.target.value)}
+                         required
+                       />
+                     </div>
+                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input

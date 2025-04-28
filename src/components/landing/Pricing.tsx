@@ -13,22 +13,26 @@ import { Link } from "react-router-dom";
 
 interface PricingTierProps {
   name: string;
-  price: number;
+  price: string; // Changed to string to accommodate "Starts at"
+  priceUnit: string;
   description: string;
   features: string[];
   isPopular?: boolean;
   turnaround: string;
   buttonText: string;
+  linkTo: string;
 }
 
 const PricingTier = ({
   name,
   price,
+  priceUnit,
   description,
   features,
   isPopular = false,
   turnaround,
   buttonText,
+  linkTo,
 }: PricingTierProps) => (
   <Card
     className={`border ${isPopular ? "border-blue-400 shadow-lg" : "border-gray-200"} h-full flex flex-col`}
@@ -43,8 +47,9 @@ const PricingTier = ({
     <CardHeader className={isPopular ? "pt-2" : ""}>
       <CardTitle className="text-2xl font-bold">{name}</CardTitle>
       <div className="mt-2">
-        <span className="text-3xl font-bold">${price}</span>
-        <span className="text-gray-500 ml-1">per page</span>
+        {/* Display price string directly */}
+        <span className="text-3xl font-bold">{price}</span>
+        <span className="text-gray-500 ml-1">{priceUnit}</span>
       </div>
       <p className="text-gray-600 mt-2">{description}</p>
     </CardHeader>
@@ -70,7 +75,7 @@ const PricingTier = ({
         className={`w-full ${isPopular ? "bg-blue-600 hover:bg-blue-700" : ""}`}
         variant={isPopular ? "default" : "outline"}
       >
-        <Link to="/checkout" className="flex items-center justify-center">
+        <Link to={linkTo} className="flex items-center justify-center">
           {buttonText}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Link>
@@ -80,57 +85,55 @@ const PricingTier = ({
 );
 
 const Pricing = () => {
-  const [isAnnual, setIsAnnual] = useState(false);
-
+  // Combined pricing for Evaluation & Academic Translation
   const pricingTiers = [
-    {
-      name: "Standard",
-      price: 24.99,
-      description: "Perfect for non-urgent document translations",
+     {
+      name: "Credential Evaluation",
+      price: "$99+", // Use string for "Starts at"
+      priceUnit: "per report",
+      description: "General or Course-by-Course U.S. equivalency reports.",
       features: [
-        "Certified Translation",
-        "Digital Delivery",
-        "Certification Statement",
-        "Translator's Signature",
-        "100% Acceptance Guarantee",
-        "Email Support",
+        "Accepted by USCIS, Universities, Employers",
+        "General or Course-by-Course options",
+        "Digital Report Delivery",
+        "Standard & Rush Turnaround Available",
       ],
-      turnaround: "3-5 Business Days",
-      buttonText: "Get Started",
+      isPopular: true, // Make evaluation popular
+      turnaround: "5-10 Business Days (Standard)",
+      buttonText: "Start Evaluation",
+      linkTo: "/checkout?service=evaluation",
     },
     {
-      name: "Expedited",
-      price: 39.99,
-      description: "Faster translations for time-sensitive needs",
+      name: "Certified Academic Translation",
+      price: "$24.99", // Use string
+      priceUnit: "per page",
+      description: "Certified translation of diplomas, transcripts, etc.",
       features: [
-        "Certified Translation",
-        "Digital Delivery",
-        "Certification Statement",
-        "Translator's Signature",
-        "100% Acceptance Guarantee",
-        "Priority Email Support",
-        "Rush Processing",
-      ],
-      isPopular: true,
-      turnaround: "1-2 Business Days",
-      buttonText: "Choose Expedited",
-    },
-    {
-      name: "Premium",
-      price: 59.99,
-      description: "Comprehensive solution with additional services",
-      features: [
-        "Certified Translation",
-        "Digital & Physical Delivery",
-        "Certification Statement",
-        "Translator's Signature",
+        "USCIS Accepted Translations",
+        "120+ Languages Supported",
+        "Digital Delivery Included",
         "Notarization Available",
-        "100% Acceptance Guarantee",
-        "24/7 Priority Support",
-        "Same-Day Processing",
+        "Standard & Rush Turnaround",
       ],
-      turnaround: "24 Hours",
-      buttonText: "Choose Premium",
+      turnaround: "1-3 Business Days (Standard)",
+      buttonText: "Order Translation",
+      linkTo: "/checkout?service=translation",
+    },
+    {
+      name: "Evaluation + Translation Bundle",
+      price: "$199+", // Example bundle price
+      priceUnit: "per credential",
+      description: "Get both evaluation and translation for one credential.",
+      features: [
+        "Includes Course-by-Course Evaluation",
+        "Includes Certified Translation (up to X pages)", // Specify page limit if applicable
+        "Streamlined Process",
+        "Digital Delivery of Both Reports",
+        "Standard Processing",
+      ],
+      turnaround: "7-12 Business Days",
+      buttonText: "Order Bundle",
+      linkTo: "/checkout?service=bundle", // Example link for bundle
     },
   ];
 
@@ -139,10 +142,10 @@ const Pricing = () => {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Simple, Transparent Pricing
+            Evaluation & Translation Pricing
           </h2>
           <p className="text-xl text-gray-600">
-            Choose the service level that fits your needs and timeline
+            Clear pricing for your academic credential needs.
           </p>
         </div>
 
@@ -152,23 +155,24 @@ const Pricing = () => {
               key={index}
               name={tier.name}
               price={tier.price}
+              priceUnit={tier.priceUnit}
               description={tier.description}
               features={tier.features}
               isPopular={tier.isPopular}
               turnaround={tier.turnaround}
               buttonText={tier.buttonText}
+              linkTo={tier.linkTo}
             />
           ))}
         </div>
 
         <div className="mt-16 text-center bg-white p-8 rounded-lg shadow-sm max-w-3xl mx-auto">
-          <h3 className="text-2xl font-bold mb-4">Need a Custom Solution?</h3>
+          <h3 className="text-2xl font-bold mb-4">Need Assistance?</h3>
           <p className="text-gray-600 mb-6">
-            For large projects, specialized documents, or unique language pairs,
-            contact us for a custom quote.
+            Unsure which service you need? Contact our experts for guidance.
           </p>
           <Button asChild variant="outline" size="lg">
-            <Link to="/contact">Contact Us for a Custom Quote</Link>
+            <Link to="/contact">Contact Support</Link>
           </Button>
         </div>
       </div>

@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Loader2, AlertCircle, Inbox, FileText } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert imports
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Define types (adjust based on your actual data)
 interface ClientUser {
@@ -16,8 +16,8 @@ interface ClientUser {
     user_metadata?: {
         first_name?: string;
         last_name?: string;
-        company_name?: string; // Assuming company name might be here
-        billing_email?: string; // Assuming billing email might be here
+        company_name?: string;
+        billing_email?: string;
     };
     // Add other fields if needed
 }
@@ -38,8 +38,11 @@ const ClientBillingDetails = () => {
     const [unbilledQuotes, setUnbilledQuotes] = useState<QuoteRequest[]>([]);
     const [loadingClient, setLoadingClient] = useState(true);
     const [loadingQuotes, setLoadingQuotes] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null); // General error for the component
+    const [quotesError, setQuotesError] = useState<string | null>(null); // Add state for quote fetching errors
     const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+    const [isSyncingCustomer, setIsSyncingCustomer] = useState(false); // Loading state for sync button
+    const [syncError, setSyncError] = useState<string | null>(null); // Error specific to sync action
 
     const quoteFee = 50; // Example fee - fetch from config/DB ideally
 
@@ -57,45 +60,62 @@ const ClientBillingDetails = () => {
             setError(null);
 
             try {
-                // Fetch Client Info (using admin client for potentially sensitive info like billing email)
-                // IMPORTANT: This requires admin privileges. Consider if a less privileged fetch is possible
-                // or if this page should only display info already available to the logged-in admin.
                 // Fetch Client Info using the secure Edge Function
+                console.log(`Invoking get-user-details for userId: ${userId}`);
+                // Get current session token for auth
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError || !session?.access_token) {
+                    throw new Error("Could not get admin session token to fetch user details.");
+                }
+
                 const { data: clientData, error: functionError } = await supabase.functions.invoke('get-user-details', {
                     body: { userId },
+                    headers: { Authorization: `Bearer ${session.access_token}` } // Pass auth token
                 });
 
                 if (functionError) {
-                    // Handle function errors (network, 403, 404, etc.)
                     console.error("Error invoking get-user-details function:", functionError);
                     let errorMessage = functionError.message;
                     try {
+                        // Attempt to parse a more specific error message if the function returned one
                         const parsedError = JSON.parse(functionError.context?.responseText || '{}');
                         if (parsedError.error) errorMessage = parsedError.error;
-                    } catch (parseErr) { /* Ignore */ }
+                    } catch (parseErr) { /* Ignore parsing error */ }
                     throw new Error(`Failed to fetch client details: ${errorMessage}`);
                 }
 
-                if (!clientData) throw new Error("Client not found or function returned no data.");
-                setClient(clientData as ClientUser); // The function returns the user object directly
-                setLoadingClient(false);
+                // Check if the function returned valid user data
+                if (!clientData || typeof clientData !== 'object' || !clientData.id) {
+                    console.error("Invalid data received from get-user-details function:", clientData);
+                    throw new Error("Client not found or function returned invalid data.");
+                }
 
-                // Fetch Unbilled Quotes (This part seems okay as it likely uses RLS based on user_id)
+                console.log("Successfully fetched client details:", clientData);
+                setClient(clientData as ClientUser);
+                // setLoadingClient(false); // Set loading false after successful fetch
+
+                // Fetch Unbilled Quotes (only after client is confirmed)
                 const { data: quotesData, error: quotesError } = await supabase
-                    .from('quote_requests')
-                    .select('id, created_at, applicant_name, country_of_education, degree_received') // Select needed fields
-                    .eq('user_id', userId)
-                    .eq('billing_status', 'unbilled') // Filter by status
-                    .order('created_at', { ascending: true }); // Oldest first for invoicing
+                    .from('api_quote_requests') // Target the correct table
+                    .select('id, created_at, applicant_name, country_of_education, degree_received') // Keep relevant fields
+                    .eq('user_id', userId) // Filter by user
+                    .eq('status', 'completed') // Filter by completed status
+                    // TODO (Optional Refinement): Add '.is('invoice_id', null)' if an invoice_id column exists
+                    .order('created_at', { ascending: true });
 
-                if (quotesError) throw new Error(`Failed to fetch unbilled quotes: ${quotesError.message}`);
+                if (quotesError) {
+                    // Update error message for clarity
+                    throw new Error(`Failed to fetch unbilled API quote requests: ${quotesError.message}`);
+                }
+                // Update log message for clarity
+                console.log(`Fetched ${quotesData?.length || 0} unbilled API quote requests.`);
                 setUnbilledQuotes(quotesData || []);
 
             } catch (err: any) {
                 console.error("Error fetching client billing data:", err);
                 setError(err.message || "Failed to load billing details.");
-                setClient(null);
-                setUnbilledQuotes([]);
+                setClient(null); // Clear client on error
+                setUnbilledQuotes([]); // Clear quotes on error
             } finally {
                 setLoadingClient(false); // Ensure loading states are always updated
                 setLoadingQuotes(false);
@@ -103,26 +123,25 @@ const ClientBillingDetails = () => {
         };
 
         fetchData();
-    }, [userId]);
+    }, [userId]); // Re-run if userId changes
 
     const handleGenerateInvoice = async () => {
         if (!client || !userId || unbilledQuotes.length === 0) return;
 
         setIsGeneratingInvoice(true);
-        setError(null); // Clear previous errors
+        setError(null);
 
         try {
-            const { data: { session } } = await supabase.auth.getSession(); // Get current admin session
+            const { data: { session } } = await supabase.auth.getSession();
              if (!session?.access_token) {
                 throw new Error("Admin session not found.");
             }
 
-            // Call the backend API route we created
             const response = await fetch('/api/admin/generate-invoice', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`, // Pass admin token
+                    'Authorization': `Bearer ${session.access_token}`,
                 },
                 body: JSON.stringify({ clientId: userId }),
             });
@@ -138,12 +157,7 @@ const ClientBillingDetails = () => {
                 description: result.message || `Invoice ${result.invoiceId} sent.`,
             });
 
-            // Refresh unbilled quotes list after successful generation
-            setUnbilledQuotes([]); // Clear the list immediately for better UX
-            // Optionally re-fetch, though clearing might be sufficient if the user navigates away
-            // const { data: updatedQuotesData, error: updatedQuotesError } = await supabase... (re-fetch logic)
-            // if (!updatedQuotesError) setUnbilledQuotes(updatedQuotesData || []);
-
+            setUnbilledQuotes([]); // Clear the list immediately
 
         } catch (err: any) {
             console.error("Error generating invoice:", err);
@@ -155,6 +169,63 @@ const ClientBillingDetails = () => {
             });
         } finally {
             setIsGeneratingInvoice(false);
+        }
+    };
+
+    const handleSyncCustomer = async () => {
+        if (!client || !userId) return;
+
+        setIsSyncingCustomer(true);
+        setSyncError(null);
+        setError(null);
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.access_token) {
+                throw new Error("Admin session not found.");
+            }
+
+            const response = await fetch('/api/admin/sync-invoiced-customer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({ clientId: userId }),
+            });
+
+             // Check if response is ok before trying to parse JSON
+            if (!response.ok) {
+                 let errorMsg = `Failed to sync customer (status: ${response.status})`;
+                 try {
+                     const errResult = await response.json();
+                     errorMsg = errResult.error || errResult.details || errorMsg;
+                 } catch (e) {
+                     // If parsing fails, use the status text
+                     errorMsg = `${errorMsg}: ${response.statusText}`;
+                 }
+                 throw new Error(errorMsg);
+            }
+
+            // Only parse JSON if response is ok
+            const result = await response.json();
+
+            toast({
+                title: "Customer Sync Successful",
+                description: result.message || `Customer ${result.customerExisted ? 'found' : 'created'} on Invoiced.com (ID: ${result.invoicedCustomerId}).`,
+            });
+
+        } catch (err: any) {
+             console.error("Error syncing Invoiced.com customer:", err);
+             const errMsg = err.message || "An unexpected error occurred during customer sync.";
+             setSyncError(errMsg);
+             toast({
+                title: "Customer Sync Failed",
+                description: errMsg,
+                variant: "destructive",
+            });
+        } finally {
+            setIsSyncingCustomer(false);
         }
     };
 
@@ -173,24 +244,27 @@ const ClientBillingDetails = () => {
 
     const totalOutstanding = unbilledQuotes.length * quoteFee;
 
-    if (loadingClient) {
+    // Combined Loading State Check
+    if (loadingClient) { // Only show initial client loading
         return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
-    if (error && !client) { // Show critical error if client couldn't be loaded
+    // Show critical error if client fetch failed
+    if (error && !client) {
          return (
            <div className="p-4">
              <Alert variant="destructive">
                <AlertCircle className="h-4 w-4" />
-               <AlertTitle>Error Loading Client</AlertTitle>
+               <AlertTitle>Error Loading Client Data</AlertTitle>
                <AlertDescription>{error}</AlertDescription>
              </Alert>
            </div>
          );
     }
 
+    // Should not happen if loading/error handled, but good fallback
     if (!client) {
-        return <div className="p-4 text-center">Client not found.</div>; // Should not happen if loading/error handled
+        return <div className="p-4 text-center">Client data could not be loaded.</div>;
     }
 
     // Determine client name and billing email (add fallbacks)
@@ -200,7 +274,14 @@ const ClientBillingDetails = () => {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold tracking-tight">Billing Details: {clientName}</h1>
+            {/* Display general errors that might occur after initial load */}
+             {error && (
+                 <Alert variant="destructive" className="mt-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                 </Alert>
+             )}
 
             <Card>
                 <CardHeader>
@@ -210,7 +291,19 @@ const ClientBillingDetails = () => {
                     <p><strong>Client Name:</strong> {clientName}</p>
                     <p><strong>User ID:</strong> {client.id}</p>
                     <p><strong>Billing Contact Email:</strong> {billingEmail}</p>
-                    {/* Add more client details if available/needed */}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSyncCustomer}
+                        disabled={isSyncingCustomer}
+                        className="mt-2"
+                    >
+                        {isSyncingCustomer && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Sync/Create Invoiced.com Customer
+                    </Button>
+                    {syncError && (
+                         <p className="text-xs text-red-600 mt-1">{syncError}</p>
+                    )}
                 </CardContent>
             </Card>
 
@@ -243,19 +336,17 @@ const ClientBillingDetails = () => {
                             </AlertDialogContent>
                         </AlertDialog>
                     </div>
-                     {/* Display API call error if any */}
-                     {error && !loadingClient && !loadingQuotes && ( // Show error only after initial load attempts
-                        <Alert variant="destructive" className="mt-4">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                     )}
                 </CardHeader>
                 <CardContent>
                     {loadingQuotes ? (
                          <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-                    ) : unbilledQuotes.length === 0 ? (
+                    ) : quotesError ? (
+                         <Alert variant="destructive" className="mt-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error Loading Quotes</AlertTitle>
+                            <AlertDescription>{quotesError}</AlertDescription>
+                         </Alert>
+                    ): unbilledQuotes.length === 0 ? (
                         <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-lg">
                             <Inbox className="mx-auto h-12 w-12 text-gray-400" />
                             <p className="mt-4 text-sm text-gray-600">No unbilled quote requests found for this client.</p>

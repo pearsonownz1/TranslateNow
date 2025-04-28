@@ -11,6 +11,11 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Button } from "../ui/button";
 import { Clock, Zap, Award } from "lucide-react";
 
+// Define data structure for this step
+export interface ServiceOptionsData {
+  serviceId: string;
+}
+
 interface ServiceOption {
   id: string;
   name: string;
@@ -21,10 +26,11 @@ interface ServiceOption {
 }
 
 interface ServiceOptionsStepProps {
-  onNext?: () => void;
+  onNext?: (data: ServiceOptionsData) => void; // Expect data object
   onBack?: () => void;
-  onSelectService?: (serviceId: string) => void;
-  selectedServiceId?: string;
+  // onSelectService?: (serviceId: string) => void; // Remove if passing data via onNext
+  defaultValues?: Partial<ServiceOptionsData>; // Use Partial for default values
+  // Pass documentType and languagePair for display purposes if needed, but they aren't part of this step's *output* data
   documentType?: string;
   languagePair?: {
     source: string;
@@ -35,13 +41,14 @@ interface ServiceOptionsStepProps {
 const ServiceOptionsStep = ({
   onNext = () => {},
   onBack = () => {},
-  onSelectService = () => {},
-  selectedServiceId = "standard",
-  documentType = "Standard Document",
-  languagePair = { source: "English", target: "Spanish" },
+  // onSelectService = () => {}, // Removed from destructuring
+  defaultValues = {},
+  documentType = "Standard Document", // Keep for display
+  languagePair = { source: "English", target: "Spanish" }, // Keep for display
 }: ServiceOptionsStepProps) => {
+  // Initialize state with defaultValues or fallback
   const [selectedService, setSelectedService] =
-    useState<string>(selectedServiceId);
+    useState<string>(defaultValues.serviceId || "standard");
 
   const serviceOptions: ServiceOption[] = [
     {
@@ -70,13 +77,15 @@ const ServiceOptionsStep = ({
     },
   ];
 
+  // No longer calling onSelectService here
   const handleServiceChange = (value: string) => {
     setSelectedService(value);
-    onSelectService(value);
+    // onSelectService(value); // Removed call
   };
 
   const handleContinue = () => {
-    onNext();
+    // Pass selected service ID to the onNext handler
+    onNext({ serviceId: selectedService });
   };
 
   return (

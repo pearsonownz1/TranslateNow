@@ -3,13 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
-  FileText,
-  Award,
-  Scale,
   GraduationCap,
   Briefcase,
   FileSignature,
   ArrowRight,
+  Languages, // Added for translation card
 } from "lucide-react";
 
 interface DocumentTypeCardProps {
@@ -17,7 +15,8 @@ interface DocumentTypeCardProps {
   title: string;
   description: string;
   examples: string[];
-  linkTo: string; // Add linkTo prop
+  linkTo: string;
+  buttonText?: string; // Optional button text
 }
 
 const DocumentTypeCard = ({
@@ -25,10 +24,11 @@ const DocumentTypeCard = ({
   title,
   description,
   examples,
-  linkTo, // Use linkTo prop
+  linkTo,
+  buttonText = "Learn More", // Default button text
 }: DocumentTypeCardProps) => (
   <Card className="border border-gray-200 hover:border-blue-200 hover:shadow-md transition-all">
-    <CardContent className="p-6 flex flex-col h-full"> {/* Ensure content fills height */}
+    <CardContent className="p-6 flex flex-col h-full">
       <div className="mb-4 text-blue-600">{icon}</div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
@@ -43,10 +43,10 @@ const DocumentTypeCard = ({
           ))}
         </ul>
       </div>
-      <div className="mt-auto pt-4"> {/* Push button to bottom */}
+      <div className="mt-auto pt-4">
         <Button asChild variant="outline" className="w-full">
           <Link to={linkTo} className="flex items-center justify-center">
-            Learn More {/* Change button text */}
+            {buttonText} {/* Use dynamic button text */}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
@@ -56,90 +56,49 @@ const DocumentTypeCard = ({
 );
 
 const DocumentTypes = () => {
+  // Combined document types for Evaluation & Academic Translation
   const documentTypes = [
     {
-      icon: <FileText className="h-6 w-6" />,
-      title: "Immigration Documents",
-      description:
-        "Certified translations for all immigration processes and applications.",
-      examples: [
-        "Birth Certificates",
-        "Marriage Certificates",
-        "Divorce Decrees",
-        "Passports",
-        "ID Cards",
-      ],
-      linkTo: "/solutions/immigration", // Add link
-    },
-    {
-      icon: <Award className="h-6 w-6" />,
-      title: "Certificates & Records",
-      description:
-        "Official translations of personal and civil status documents.",
-      examples: [
-        "Death Certificates",
-        "Adoption Papers",
-        "Name Change Documents",
-        "Police Records",
-        "Medical Records",
-      ],
-      linkTo: "/solutions/personal", // Link to Personal as fallback
-    },
-    {
-      icon: <Scale className="h-6 w-6" />,
-      title: "Legal Documents",
-      description:
-        "Precise translations of legal documents with proper terminology.",
-      examples: [
-        "Court Judgments",
-        "Contracts",
-        "Powers of Attorney",
-        "Affidavits",
-        "Legal Notices",
-      ],
-      linkTo: "/solutions/legal", // Add link
-    },
-    {
       icon: <GraduationCap className="h-6 w-6" />,
-      title: "Academic Documents",
+      title: "Credential Evaluation Documents",
       description:
-        "Accurate translations of educational records and credentials.",
+        "Documents required for U.S. academic equivalency reports (General or Course-by-Course).",
       examples: [
-        "Diplomas",
-        "Transcripts",
+        "University Transcripts",
+        "Degree Certificates / Diplomas",
+        "Professional Licenses",
+        "Secondary School Records",
+      ],
+      linkTo: "/checkout?service=evaluation",
+      buttonText: "Start Evaluation",
+    },
+    {
+      icon: <Languages className="h-6 w-6" />, // Use Languages icon
+      title: "Certified Academic Translations",
+      description:
+        "Certified translations of foreign academic documents for official U.S. submission.",
+      examples: [
+        "Diplomas (Any Language)",
+        "Transcripts (Any Language)",
         "Degree Certificates",
         "Course Descriptions",
-        "Letters of Recommendation",
       ],
-      linkTo: "/solutions/academic", // Add link
-    },
-    {
-      icon: <Briefcase className="h-6 w-6" />,
-      title: "Business Documents",
-      description:
-        "Professional translations for business and corporate needs.",
-      examples: [
-        "Business Licenses",
-        "Financial Statements",
-        "Corporate Bylaws",
-        "Business Proposals",
-        "Annual Reports",
-      ],
-      linkTo: "/solutions/business", // Add link
+      linkTo: "/checkout?service=translation", // Link to translation checkout
+      buttonText: "Order Translation",
     },
     {
       icon: <FileSignature className="h-6 w-6" />,
-      title: "Personal Documents",
+      title: "Other Official Documents",
       description:
-        "Certified translations of personal documents for various purposes.",
-      examples: [
-        "Driver's Licenses",
-        "Social Security Cards",
-        "Residence Permits",
-        "Medical Prescriptions",
-        "Personal Letters",
+        "We also provide certified translations for other official documents needed alongside academic records.",
+       examples: [
+        "Birth Certificates",
+        "Marriage Certificates",
+        "Passports & Visas",
+        "Legal Contracts", // Example
       ],
-      linkTo: "/solutions/personal", // Add link
+      linkTo: "/checkout?service=translation", // Link to general translation
+      buttonText: "Order Translation",
     },
   ];
 
@@ -148,14 +107,13 @@ const DocumentTypes = () => {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Document Types We Translate
+            Documents We Evaluate & Translate
           </h2>
           <p className="text-xl text-gray-600">
-            Professional certified translations for all your official documents
+            Comprehensive services for your foreign academic and official documents.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {documentTypes.map((docType, index) => (
             <DocumentTypeCard
               key={index}
@@ -163,7 +121,8 @@ const DocumentTypes = () => {
               title={docType.title}
               description={docType.description}
               examples={docType.examples}
-              linkTo={docType.linkTo} // Pass linkTo prop
+              linkTo={docType.linkTo}
+              buttonText={docType.buttonText} // Pass button text
             />
           ))}
         </div>

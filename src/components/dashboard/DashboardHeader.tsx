@@ -45,12 +45,15 @@ const DashboardHeader = ({ user }: DashboardHeaderProps) => {
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+      {/* Removed container mx-auto px-4, applying px-6 directly to flex container below */}
+      <div>
+        {/* Added px-6 to match sidebar p-6 */}
+        <div className="flex h-16 items-center justify-between px-6">
+          {/* Removed pl-2 as px-6 on parent handles alignment */}
           <div className="flex items-center">
             <Link to="/dashboard" className="flex items-center">
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                OpenTranslate
+                OpenEval
               </span>
             </Link>
           </div>

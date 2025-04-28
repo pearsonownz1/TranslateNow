@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { Link } from "react-router-dom";
 import {
   Table,
@@ -25,16 +25,100 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { mockOrders } from "./mockData";
-import { Download, Eye, MoreHorizontal, Search } from "lucide-react";
+// import { mockOrders } from "./mockData"; // Removed mock data import
+import { supabase } from "@/lib/supabase"; // Added Supabase client
+import { Session } from "@supabase/supabase-js"; // Added Session type
+import { Download, Eye, MoreHorizontal, Search, Loader2, AlertCircle } from "lucide-react"; // Added Loader2, AlertCircle
+
+// Define an interface for your order structure (adjust based on your DB schema)
+// This should ideally be shared, e.g., in src/types/index.ts
+interface Order {
+  id: string; // Or number
+  documentType: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  date: string; // Or Date object
+  status: 'processing' | 'completed' | 'pending' | 'cancelled';
+  total: number;
+}
+
 
 const OrdersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [orders, setOrders] = useState<Order[]>([]); // State for fetched orders
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null); // Add session state
 
-  const filteredOrders = mockOrders.filter((order) => {
+  useEffect(() => {
+    const fetchSessionAndOrders = async () => {
+      setLoading(true);
+      setError(null);
+
+      // 1. Get Session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      setSession(session); // Store session
+
+      if (sessionError) {
+        console.error("Error fetching session:", sessionError);
+        setError("Could not load user session.");
+        setLoading(false);
+        return;
+      }
+
+      if (!session?.user) {
+        console.log("No active session found.");
+        setLoading(false);
+        // ProtectedRoute should handle redirect
+        return;
+      }
+
+      // 2. Fetch Orders
+      // IMPORTANT: Adjust table/column names as needed
+      const { data: fetchedOrders, error: ordersError } = await supabase
+        .from('orders') // Replace 'orders' with your table name
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (ordersError) {
+        console.error("Error fetching orders:", ordersError);
+        setError("Could not load your orders.");
+      } else if (fetchedOrders) {
+        // Map fetched data
+        const mappedOrders: Order[] = fetchedOrders.map((dbOrder: any) => ({
+          id: dbOrder.id,
+          documentType: dbOrder.document_type || 'N/A',
+          sourceLanguage: dbOrder.source_language || 'N/A',
+          targetLanguage: dbOrder.target_language || 'N/A',
+          date: new Date(dbOrder.created_at).toLocaleDateString(),
+          status: dbOrder.status || 'pending',
+          total: dbOrder.total_price || 0,
+        }));
+        setOrders(mappedOrders);
+      }
+      setLoading(false);
+    };
+
+    fetchSessionAndOrders();
+
+    // Optional: Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       setSession(session); // Update session state on change
+       if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') {
+         fetchSessionAndOrders(); // Refetch if needed
+       }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+
+  const filteredOrders = orders.filter((order) => { // Filter fetched orders
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.toString().toLowerCase().includes(searchLower) || // Ensure ID is string for includes
       order.documentType.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
@@ -42,6 +126,32 @@ const OrdersPage = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Loading State
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center space-x-2 p-10">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span>Loading orders...</span>
+      </div>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div className="text-center p-10 text-red-600">
+        <AlertCircle className="mx-auto h-8 w-8 mb-2" />
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  // No Session State (should be handled by layout/protected route, but good fallback)
+  if (!session?.user) {
+     return <div className="text-center p-10">Please log in to view your orders.</div>;
+  }
+
 
   return (
     <div className="space-y-6">

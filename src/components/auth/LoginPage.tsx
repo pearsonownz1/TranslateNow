@@ -39,7 +39,7 @@ const LoginPage = () => {
 
       toast({
         title: "Login successful",
-        description: "Welcome to your OpenTranslate dashboard",
+        description: "Welcome to your OpenEval dashboard",
       });
 
       navigate("/dashboard");
@@ -67,7 +67,7 @@ const LoginPage = () => {
                   Sign in to your account
                 </CardTitle>
                 <CardDescription className="text-center">
-                  Use your email and password to access OpenTranslate
+                  Use your email and password to access OpenEval
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>

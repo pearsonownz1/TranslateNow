@@ -6,6 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Truck, Clock, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Define data structure for this step
+export interface DeliveryOptionsData {
+  deliveryId: string;
+}
+
 interface DeliveryOption {
   id: string;
   name: string;
@@ -15,20 +20,21 @@ interface DeliveryOption {
 }
 
 interface DeliveryOptionsStepProps {
-  onNext?: () => void;
+  onNext?: (data: DeliveryOptionsData) => void; // Expect data object
   onBack?: () => void;
-  onSelectDelivery?: (deliveryId: string) => void;
-  selectedDeliveryId?: string;
+  // onSelectDelivery?: (deliveryId: string) => void; // Remove if passing data via onNext
+  defaultValues?: Partial<DeliveryOptionsData>; // Use Partial for default values
 }
 
 const DeliveryOptionsStep = ({
   onNext = () => {},
   onBack = () => {},
-  onSelectDelivery = () => {},
-  selectedDeliveryId = "digital",
+  // onSelectDelivery = () => {}, // Removed from destructuring
+  defaultValues = {},
 }: DeliveryOptionsStepProps) => {
+  // Initialize state with defaultValues or fallback
   const [selectedDelivery, setSelectedDelivery] =
-    useState<string>(selectedDeliveryId);
+    useState<string>(defaultValues.deliveryId || "digital");
 
   const deliveryOptions: DeliveryOption[] = [
     {
@@ -57,13 +63,15 @@ const DeliveryOptionsStep = ({
     },
   ];
 
+  // No longer calling onSelectDelivery here
   const handleDeliveryChange = (value: string) => {
     setSelectedDelivery(value);
-    onSelectDelivery(value);
+    // onSelectDelivery(value); // Removed call
   };
 
   const handleContinue = () => {
-    onNext();
+    // Pass selected delivery ID to the onNext handler
+    onNext({ deliveryId: selectedDelivery });
   };
 
   return (
