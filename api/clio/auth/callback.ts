@@ -77,9 +77,9 @@ async function createClioCustomAction(
       // Using 'documents/show' makes sense if triggered from a document.
       // Using 'matters/show' makes sense if triggered from a matter.
       // Let's start with documents.
-      //   ui_reference: "documents/show",
+      ui_reference: "matters/show",
       // Potentially add 'matters/show' if you want it in both places
-      ui_references: ["documents/show", "matters/show"], // Use this if Clio API supports array
+      //   ui_references: ["documents/show", "matters/show"], // Use this if Clio API supports array
     },
   };
 
