@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { supabase } from '@/lib/supabase'; // Assuming supabase client is exported from here
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { supabase } from "@/lib/supabase"; // Assuming supabase client is exported from here
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"; // Assuming Shadcn UI table components
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // For error display
-import { Terminal } from 'lucide-react'; // Icon for error alert
+import { Terminal } from "lucide-react"; // Icon for error alert
 
 // Define a type for the quote data (adjust based on your actual needs)
 type ClioQuote = {
@@ -37,8 +37,9 @@ const AdminClioQuotesPage = () => {
       setError(null);
       try {
         const { data, error: fetchError } = await supabase
-          .from('clio_quotes') // Fetch from the correct table
-          .select(`
+          .from("clio_quotes") // Fetch from the correct table
+          .select(
+            `
             id,
             created_at,
             user_id,
@@ -48,17 +49,20 @@ const AdminClioQuotesPage = () => {
             client_name,
             client_email,
             subject_description
-          `) // Select desired columns
-          .order('created_at', { ascending: false }); // Order by creation date
+          `
+          ) // Select desired columns
+          .order("created_at", { ascending: false }); // Order by creation date
 
         if (fetchError) {
           throw fetchError;
         }
-
+        console.log("clio data mel", data);
         setClioQuotes(data || []);
       } catch (err: any) {
         console.error("Error fetching Clio quotes:", err);
-        setError(err.message || "An unknown error occurred while fetching Clio quotes.");
+        setError(
+          err.message || "An unknown error occurred while fetching Clio quotes."
+        );
       } finally {
         setLoading(false);
       }
@@ -74,11 +78,11 @@ const AdminClioQuotesPage = () => {
       {loading && <p>Loading Clio quotes...</p>}
 
       {error && (
-         <Alert variant="destructive" className="mb-4">
-           <Terminal className="h-4 w-4" />
-           <AlertTitle>Error</AlertTitle>
-           <AlertDescription>{error}</AlertDescription>
-         </Alert>
+        <Alert variant="destructive" className="mb-4">
+          <Terminal className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {!loading && !error && (
@@ -104,12 +108,14 @@ const AdminClioQuotesPage = () => {
                   className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" // Add hover effect
                 >
                   <TableCell>{quote.id}</TableCell>
-                  <TableCell>{new Date(quote.created_at).toLocaleString()}</TableCell>
+                  <TableCell>
+                    {new Date(quote.created_at).toLocaleString()}
+                  </TableCell>
                   <TableCell>{quote.status}</TableCell>
-                  <TableCell>{quote.client_name || '-'}</TableCell>
-                  <TableCell>{quote.client_email || '-'}</TableCell>
-                  <TableCell>{quote.clio_subject_type || '-'}</TableCell>
-                  <TableCell>{quote.subject_description || '-'}</TableCell>
+                  <TableCell>{quote.client_name || "-"}</TableCell>
+                  <TableCell>{quote.client_email || "-"}</TableCell>
+                  <TableCell>{quote.clio_subject_type || "-"}</TableCell>
+                  <TableCell>{quote.subject_description || "-"}</TableCell>
                   {/* Add more cells corresponding to headers */}
                 </TableRow>
               ))
