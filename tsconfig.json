@@ -15,11 +15,13 @@
     "jsx": "react-jsx",
 
     "strict": false,
+    "baseUrl": ".", // Add baseUrl for path aliases
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@api_lib/*": ["./api/_lib/*"] // Add alias for the shared API library
     }
   },
-  "include": ["src"],
+  "include": ["src", "api"], // Include the api directory
   "exclude": ["src/tempobook"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

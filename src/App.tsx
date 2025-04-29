@@ -100,6 +100,8 @@ const AdminOrderDetailsPage = lazy(
 const AdminQuotesPage = lazy(() => import("./components/admin/AdminQuotesPage"));
 const AdminApiQuotesPage = lazy(() => import("./components/admin/AdminApiQuotesPage"));
 const AdminQuoteDetailsPage = lazy(() => import("./components/admin/AdminQuoteDetailsPage"));
+const AdminClioQuotesPage = lazy(() => import("./components/admin/AdminClioQuotesPage"));
+const AdminClioQuoteDetailsPage = lazy(() => import("./components/admin/AdminClioQuoteDetailsPage")); // Import Clio Quote Details Page
 const ClientBillingDetails = lazy(() => import("./components/admin/ClientBillingDetails"));
 const AdminUserDetailsPage = lazy(() => import("./components/admin/AdminUserDetailsPage")); // Import User Details Page
 
@@ -569,6 +571,7 @@ function App() {
               <Route path="orders" element={<AdminOrdersPage />} />
               <Route path="quotes" element={<AdminQuotesPage />} />
               <Route path="api-quotes" element={<AdminApiQuotesPage />} /> {/* Add route for API Quotes */}
+              <Route path="clio-quotes" element={<AdminClioQuotesPage />} /> {/* Add route for Clio Quotes */}
               <Route path="pending-orders" element={<AdminPendingOrdersPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               {/* Route for the main user detail page with tabs */}
@@ -577,6 +580,7 @@ function App() {
               {/* <Route path="users/:userId/billing" element={<ClientBillingDetails />} /> */}
               <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
               <Route path="quotes/:quoteId" element={<AdminQuoteDetailsPage />} />
+              <Route path="clio-quotes/:quoteId" element={<AdminClioQuoteDetailsPage />} /> {/* Add route for Clio Quote Details */}
             </Route>
 
             {/* Use the CheckoutFlow component for checkout routes */}

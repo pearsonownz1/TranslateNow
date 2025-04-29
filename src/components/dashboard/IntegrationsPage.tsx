@@ -5,7 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Copy, Check, Loader2, Trash2 } from "lucide-react"; // Added Loader2, Trash2
+import { Terminal, Copy, Check, Loader2, Trash2, ExternalLink, CheckCircle, XCircle } from "lucide-react"; // Added icons
+// Removed incorrect Next.js import
 import {
   Table,
   TableBody,
@@ -37,21 +38,59 @@ interface ApiKey {
 }
 
 
+// Define Clio connection status type
+type ClioConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+
 const IntegrationsPage = () => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false); // For generating key
-  const [isFetchingKeys, setIsFetchingKeys] = useState(true); // For fetching keys
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]); // State for existing keys
-  const [fetchKeysError, setFetchKeysError] = useState<string | null>(null); // State for fetch error
-  const [newApiKey, setNewApiKey] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null); // For generating key error
-  const [copied, setCopied] = useState(false);
-  const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null); // State for loading indicator on revoke button
-  const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false);
-  const [keyToRevoke, setKeyToRevoke] = useState<ApiKey | null>(null);
+  const [isLoading, setIsLoading] = useState(false); // For generating API key
+  const [isFetchingKeys, setIsFetchingKeys] = useState(true); // For fetching API keys
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]); // State for existing API keys
+  const [fetchKeysError, setFetchKeysError] = useState<string | null>(null); // State for API key fetch error
+  const [newApiKey, setNewApiKey] = useState<string | null>(null); // State for newly generated API key
+  const [generateKeyError, setGenerateKeyError] = useState<string | null>(null); // For generating API key error
+  const [copied, setCopied] = useState(false); // For API key copy status
+  const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null); // State for loading indicator on API key revoke button
+  const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false); // State for API key revoke dialog
+  const [keyToRevoke, setKeyToRevoke] = useState<ApiKey | null>(null); // State for API key being revoked
+
+  // --- Clio Integration State ---
+  const [clioConnectionStatus, setClioConnectionStatus] = useState<ClioConnectionStatus>('disconnected'); // Initial status
+  const [isClioConnecting, setIsClioConnecting] = useState(false); // Loading state for connect/disconnect
+  const [clioError, setClioError] = useState<string | null>(null); // Error message for Clio actions
+
+  // --- Effects ---
+
+  // Check for Clio status from redirect callback
+  useEffect(() => {
+    // This is a simplified way assuming client-side routing updates URL
+    // If using standard React Router, use useLocation() and URLSearchParams
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('clio_status');
+    const errorMsg = urlParams.get('clio_error');
+
+    if (status === 'success') {
+      setClioConnectionStatus('connected');
+      setClioError(null);
+      toast({ title: "Clio Connected", description: "Successfully connected your Clio account." });
+      // Clean the URL query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (status === 'error') {
+      setClioConnectionStatus('error');
+      setClioError(errorMsg || "An unknown error occurred during Clio connection.");
+      toast({ title: "Clio Connection Failed", description: errorMsg || "Please try again.", variant: "destructive" });
+      // Clean the URL query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // TODO: Add logic here to fetch the actual connection status from your backend
+    // This effect should run once on mount to check the initial status
+    // fetch('/api/clio/status').then(...).then(status => setClioConnectionStatus(status));
+
+  }, []); // Run once on mount
 
 
-  // Fetch existing keys on component mount
+  // Fetch existing API keys on component mount
   useEffect(() => {
     const fetchKeys = async () => {
       setIsFetchingKeys(true);
@@ -95,7 +134,7 @@ const IntegrationsPage = () => {
   const handleGenerateKey = async () => {
     setIsLoading(true);
     setNewApiKey(null); // Clear previous key
-    setError(null); // Clear previous error
+    setGenerateKeyError(null); // Clear previous error
     setCopied(false); // Reset copied state
 
     try {
@@ -127,9 +166,9 @@ const IntegrationsPage = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
       console.error("Failed to generate API key:", message);
-      setError(message);
+      setGenerateKeyError(message);
       toast({
-        title: "Error Generating Key",
+        title: "Error Generating API Key",
         description: message,
         variant: "destructive",
       });
@@ -199,6 +238,97 @@ const IntegrationsPage = () => {
         console.error("Failed to copy API key:", err);
         toast({ title: "Copy Failed", description: "Could not copy key to clipboard.", variant: "destructive" });
       });
+    }
+  };
+
+  // --- Clio Actions ---
+  const handleClioConnect = async () => { // Make async to get session
+    // Set loading/connecting state immediately
+    setIsClioConnecting(true);
+    setClioError(null);
+    setClioConnectionStatus('connecting');
+
+    try {
+        // Get current session to retrieve the access token
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+            console.error("Clio Connect: Error getting session or no active session.", sessionError);
+            toast({
+                title: "Authentication Error",
+                description: "Could not verify your session. Please log in again.",
+                variant: "destructive",
+            });
+            setIsClioConnecting(false);
+            setClioConnectionStatus('disconnected'); // Reset status
+            // Optionally redirect to login: window.location.href = '/login';
+            return;
+        }
+
+        // Construct URL with access token as query parameter
+        const startUrl = `/api/clio/auth/start?access_token=${encodeURIComponent(session.access_token)}`;
+
+        // Directly navigate the browser to the backend endpoint with the token
+        window.location.href = startUrl;
+
+    } catch (err) {
+         // Catch errors during session retrieval
+         console.error("Clio Connect: Failed to get session before navigation:", err);
+         const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+         setClioError(message);
+         setClioConnectionStatus('error');
+         toast({
+             title: "Clio Connection Error",
+             description: message,
+             variant: "destructive",
+         });
+         setIsClioConnecting(false);
+    }
+    // No need for finally block as navigation happens on success
+    // Error handling for the *initiation itself* happens if the user returns
+    // to this page with error parameters in the URL (handled by useEffect).
+    // The loading state ('connecting') will persist until the page reloads
+    // after the OAuth flow completes or fails.
+  };
+
+  const handleClioDisconnect = async () => {
+    setIsClioConnecting(true);
+    setClioError(null);
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error(sessionError?.message || "Authentication session not found.");
+      }
+
+      const response = await fetch('/api/clio/disconnect', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || `Failed to disconnect Clio: ${response.statusText}`);
+      }
+
+      setClioConnectionStatus('disconnected');
+      toast({ title: "Clio Disconnected", description: "Your Clio account has been disconnected." });
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred during disconnection.";
+      console.error("Failed to disconnect Clio:", message);
+      setClioError(message);
+      // Optionally set status back to 'connected' or 'error' depending on desired UX
+      setClioConnectionStatus('connected'); // Revert to connected on error, as disconnect failed
+      toast({
+        title: "Clio Disconnect Failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsClioConnecting(false);
     }
   };
 
@@ -297,12 +427,12 @@ const IntegrationsPage = () => {
             </Alert>
           )}
 
-           {/* Display Error */}
-          {error && (
+           {/* Display API Key Generation Error */}
+          {generateKeyError && (
             <Alert variant="destructive">
               <Terminal className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertTitle>API Key Generation Error</AlertTitle>
+              <AlertDescription>{generateKeyError}</AlertDescription>
             </Alert>
           )}
 
@@ -313,7 +443,7 @@ const IntegrationsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Revoke Confirmation Dialog */}
+      {/* API Key Revoke Confirmation Dialog */}
       {keyToRevoke && (
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -338,11 +468,90 @@ const IntegrationsPage = () => {
         </AlertDialogContent>
       )}
 
+      <Separator />
+
+      {/* External Integrations Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>External Integrations</CardTitle>
+          <CardDescription>Connect your account to third-party services like Clio.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Clio Integration */}
+          <div className="flex items-center justify-between p-4 border rounded-md">
+            <div className="flex items-center space-x-3">
+              {/* Placeholder for Clio Logo */}
+              <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold">C</div>
+              <div>
+                <h4 className="font-semibold">Clio</h4>
+                <p className="text-sm text-muted-foreground">Manage legal practice data.</p>
+              </div>
+            </div>
+            <div>
+              {clioConnectionStatus === 'disconnected' && (
+                <Button
+                  onClick={handleClioConnect}
+                  disabled={isClioConnecting}
+                >
+                  {isClioConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+                  Connect
+                </Button>
+              )}
+              {clioConnectionStatus === 'connecting' && (
+                 <Button disabled>
+                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                   Connecting...
+                 </Button>
+              )}
+              {clioConnectionStatus === 'connected' && (
+                <div className="flex items-center space-x-2">
+                   <Badge variant="secondary" className="bg-green-100 text-green-800">
+                     <CheckCircle className="mr-1 h-4 w-4" /> Connected
+                   </Badge>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={handleClioDisconnect}
+                     disabled={isClioConnecting}
+                   >
+                     {isClioConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />} {/* Changed icon */}
+                     Disconnect
+                   </Button>
+                </div>
+              )}
+               {clioConnectionStatus === 'error' && (
+                 <div className="flex items-center space-x-2">
+                    <Badge variant="destructive">
+                      <XCircle className="mr-1 h-4 w-4" /> Error
+                    </Badge>
+                   <Button
+                     onClick={handleClioConnect} // Retry uses the same connect logic
+                     disabled={isClioConnecting}
+                   >
+                     {isClioConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+                     Retry Connect
+                   </Button>
+                 </div>
+               )}
+            </div>
+          </div>
+           {/* Display Clio Error */}
+           {clioError && (
+            <Alert variant="destructive" className="mt-2">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Clio Connection Error</AlertTitle>
+              <AlertDescription>{clioError}</AlertDescription>
+            </Alert>
+          )}
+          {/* Add other integrations here */}
+        </CardContent>
+      </Card>
+
 
       {/* API Documentation Section */}
       <Card>
         <CardHeader>
-          <CardTitle>API Documentation</CardTitle>
+          <CardTitle>Quote Request API Documentation</CardTitle>
           <CardDescription>Details for submitting quote requests via the API.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

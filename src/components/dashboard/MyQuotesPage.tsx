@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Zap } from 'lucide-react'; // Added Zap icon
+import { Loader2, Zap, FileCode } from 'lucide-react'; // Import FileCode icon
 import { Button } from '@/components/ui/button';
 
 // Define a unified structure for displaying quotes from either source
@@ -15,7 +15,7 @@ interface UserQuoteItem {
   details: string; // Combined field for languages or API request details
   status: 'pending' | 'reviewed' | 'quoted' | 'rejected' | 'converted_to_order' | 'completed' | 'failed'; // Combined statuses (ensure 'rejected' is handled if used for API)
   price?: number; // Only applicable for web quotes
-  source: 'web' | 'api';
+  source: 'web' | 'api' | 'clio'; // Added 'clio' source
   // Fields for API quote response
   us_equivalent?: string;
   unable_to_provide?: boolean;
@@ -76,10 +76,18 @@ const MyQuotesPage = () => {
         // Fetch API quotes linked to the user, including response fields (re-added)
         const { data: apiQuotes, error: apiError } = await supabase
           .from('api_quote_requests')
-          .select('id, created_at, applicant_name, country_of_education, degree_received, status, us_equivalent, unable_to_provide, rejection_reason') // Re-added response fields
-          .eq('user_id', userId); // Filter by the user ID associated with the API key
+          .select('id, created_at, applicant_name, country_of_education, degree_received, status, us_equivalent, unable_to_provide, rejection_reason')
+          .eq('user_id', userId);
 
         if (apiError) throw apiError;
+
+        // Fetch Clio quotes
+        const { data: clioQuotes, error: clioError } = await supabase
+          .from('clio_quotes')
+          .select('id, created_at, status, clio_subject_type, subject_description') // Select relevant fields
+          .eq('user_id', userId);
+
+        if (clioError) throw clioError;
 
         // Map web quotes
         const mappedWebQuotes: UserQuoteItem[] = (webQuotes || []).map(q => ({
@@ -104,8 +112,19 @@ const MyQuotesPage = () => {
           rejection_reason: q.rejection_reason, // Re-enabled response field
         }));
 
-        // Combine and sort
-        const combinedQuotes = [...mappedWebQuotes, ...mappedApiQuotes];
+        // Map Clio quotes
+        const mappedClioQuotes: UserQuoteItem[] = (clioQuotes || []).map(q => ({
+          id: q.id.toString(), // Ensure ID is string if needed, or adjust UserQuoteItem type
+          created_at: q.created_at,
+          details: `${q.clio_subject_type || 'Unknown'}: ${q.subject_description || 'No description'}`, // Combine details
+          status: q.status as UserQuoteItem['status'], // Cast status, ensure types align
+          price: undefined,
+          source: 'clio',
+        }));
+
+
+        // Combine and sort all three sources
+        const combinedQuotes = [...mappedWebQuotes, ...mappedApiQuotes, ...mappedClioQuotes];
         combinedQuotes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
         setAllUserQuotes(combinedQuotes);
@@ -201,11 +220,11 @@ const MyQuotesPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID / Source</TableHead> {/* Combined ID/Source */}
+                  <TableHead>ID / Source</TableHead>
                   <TableHead>Date Submitted</TableHead>
-                  <TableHead>Details</TableHead> {/* Renamed from Languages */}
+                  <TableHead>Details</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Response / Price</TableHead> {/* Updated Header */}
+                  <TableHead>Response / Price</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -213,11 +232,13 @@ const MyQuotesPage = () => {
                 {allUserQuotes.map((quote) => ( // Use allUserQuotes
                   <TableRow key={`${quote.source}-${quote.id}`}> {/* Ensure unique key */}
                     <TableCell className="font-medium">
-                        {quote.id.substring(0, 8)}...
+                        {/* Display ID and source icon */}
+                        {quote.id.toString().substring(0, 8)}...
                         {quote.source === 'api' && <Zap className="h-3 w-3 inline-block ml-1 text-yellow-500" />} {/* Removed title prop */}
+                        {quote.source === 'clio' && <FileCode className="h-3 w-3 inline-block ml-1 text-blue-500" />} {/* Removed title prop */}
                     </TableCell>
                     <TableCell>{formatDate(quote.created_at)}</TableCell>
-                    <TableCell>{quote.details}</TableCell> {/* Use combined details */}
+                    <TableCell>{quote.details}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(quote.status)}>
                         {formatStatusText(quote.status)}
@@ -231,12 +252,14 @@ const MyQuotesPage = () => {
                         <span className="text-green-700">{quote.us_equivalent}</span>
                       ) : quote.source === 'api' && quote.status === 'rejected' && quote.unable_to_provide ? (
                         <span className="text-red-600" title={quote.rejection_reason || ''}>Rejected</span>
+                      ) : quote.source === 'clio' ? (
+                        <span className="italic text-gray-500">Clio Request</span> // Indicate Clio source if no specific response/price
                       ) : (
                         '-'
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                       {/* Pay button only shown for web quotes that are quoted and ready */}
+                       {/* Pay button only shown for web quotes */}
                       {quote.source === 'web' && quote.status === 'quoted' && quote.price != null && (
                         <Button
                           size="sm"

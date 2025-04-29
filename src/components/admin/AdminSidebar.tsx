@@ -7,6 +7,7 @@ import {
   Users,
   FileText, // Icon for Quotes
   Zap, // Added Zap icon for API Quotes
+  FileCode, // Icon for Clio Quotes
   // Add other icons as needed
 } from "lucide-react";
 
@@ -33,6 +34,11 @@ const AdminSidebar = () => {
       title: "API Quotes", // Added API Quotes link
       icon: <Zap className="h-5 w-5" />,
       href: "/admin/api-quotes", // New route
+    },
+    {
+      title: "Clio Quotes", // Added Clio Quotes link
+      icon: <FileCode className="h-5 w-5" />,
+      href: "/admin/clio-quotes", // New route for Clio Quotes
     },
     {
       title: "Users",

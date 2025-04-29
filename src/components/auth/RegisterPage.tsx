@@ -100,7 +100,7 @@ const RegisterPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Left Column */}
           <div className="pr-8">
-            <img src="/logos/logo2.png" alt="OpenEval Logo" className="h-24 mb-6" /> {/* Increased logo height again */}
+            <img src="/logos/logo2.png" alt="OpenEval Logo" className="h-32 mb-6" /> {/* Increased logo height to h-32 */}
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               Expert Credential Evaluation Services
             </h2>
