@@ -61,34 +61,30 @@ async function getClioUserId(accessToken: string): Promise<string | null> {
 }
 
 /**
- * Creates the Custom Action in Clio for the user.
+ * Creates the Custom Actions in Clio for the user.
+ * Attempts to create actions for both documents and matters.
  * (Optional but recommended)
  */
-async function createClioCustomAction(
+async function createClioCustomActions(
   accessToken: string,
   targetUrl: string
 ): Promise<boolean> {
   const url = "https://app.clio.com/api/v4/custom_actions";
-  const payload = {
+  let allActionsCreated = true;
+
+  // Action for Documents
+  const documentPayload = {
     data: {
-      label: "Request Evaluation (OpenEval)", // User-facing label
+      label: "Request Evaluation (OpenEval)", // Original label
       target_url: targetUrl, // The URL of your Vercel endpoint
-      // Choose where it appears. Add more as needed.
-      // Using 'documents/show' makes sense if triggered from a document.
-      // Using 'matters/show' makes sense if triggered from a matter.
-      // Let's start with documents.
-      ui_reference: "matters/show",
-      // Potentially add 'matters/show' if you want it in both places
-      //   ui_references: ["documents/show", "matters/show"], // Use this if Clio API supports array
+      ui_reference: "documents/show",
     },
   };
 
-  // Check if Clio API expects single string or array for ui_reference
-  // If single: payload.data.ui_reference = "documents/show";
-  // If array: payload.data.ui_references = ["documents/show", "matters/show"];
-  // Adjust based on Clio API docs if needed. Assuming single string for now.
-
-  console.log("Attempting to create Clio Custom Action with payload:", payload);
+  console.log(
+    "Attempting to create Clio Custom Action for Documents with payload:",
+    documentPayload
+  );
 
   try {
     const response = await fetch(url, {
@@ -98,31 +94,77 @@ async function createClioCustomAction(
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(documentPayload),
     });
 
     if (response.status === 201) {
-      // 201 Created
-      console.log("Successfully created Clio Custom Action.");
-      return true;
+      console.log("Successfully created Clio Custom Action for Documents.");
     } else if (response.status === 422) {
-      // 422 Unprocessable Entity (often means it already exists with same target_url/ui_reference)
       console.warn(
-        "Clio Custom Action might already exist (received 422). Assuming success."
+        "Clio Custom Action for Documents might already exist (received 422). Assuming success."
       );
-      // You might want to fetch existing actions first to avoid this, but for simplicity, we'll treat 422 as non-fatal.
-      return true; // Treat as success for the flow
     } else {
       const errorData = await response.json().catch(() => ({}));
       console.error(
-        `Failed to create Clio Custom Action: ${response.status} - ${JSON.stringify(errorData)}`
+        `Failed to create Clio Custom Action for Documents: ${response.status} - ${JSON.stringify(errorData)}`
       );
-      return false;
+      allActionsCreated = false;
     }
   } catch (error) {
-    console.error("Network error creating Clio Custom Action:", error);
-    return false;
+    console.error(
+      "Network error creating Clio Custom Action for Documents:",
+      error
+    );
+    allActionsCreated = false;
   }
+
+  // Action for Matters (v2)
+  const matterPayload = {
+    data: {
+      label: "Request Evaluation v2 (OpenEval)", // New label
+      target_url: targetUrl, // The URL of your Vercel endpoint
+      ui_reference: "matters/show",
+    },
+  };
+
+  console.log(
+    "Attempting to create Clio Custom Action for Matters with payload:",
+    matterPayload
+  );
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(matterPayload),
+    });
+
+    if (response.status === 201) {
+      console.log("Successfully created Clio Custom Action for Matters.");
+    } else if (response.status === 422) {
+      console.warn(
+        "Clio Custom Action for Matters might already exist (received 422). Assuming success."
+      );
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(
+        `Failed to create Clio Custom Action for Matters: ${response.status} - ${JSON.stringify(errorData)}`
+      );
+      allActionsCreated = false;
+    }
+  } catch (error) {
+    console.error(
+      "Network error creating Clio Custom Action for Matters:",
+      error
+    );
+    allActionsCreated = false;
+  }
+
+  return allActionsCreated; // Return true only if both attempts were successful or already existed
 }
 
 // --- Main Handler ---
@@ -346,16 +388,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `Successfully stored/updated Clio integration details for OpenEval user ${userId}.`
     );
 
-    // --- Attempt to Create Custom Action (Optional) ---
+    // --- Attempt to Create Custom Actions (Optional) ---
     const customActionTargetUrl = `${siteUrl}/api/clio/custom-action/request-evaluation`; // URL of your handler
-    const actionCreated = await createClioCustomAction(
+    const actionsCreated = await createClioCustomActions(
       access_token,
       customActionTargetUrl
     );
-    if (!actionCreated) {
+    if (!actionsCreated) {
       // Log warning, but don't fail the overall connection process
       console.warn(
-        `Failed to automatically create Clio Custom Action for user ${userId}. It may need to be created manually or via a separate process.`
+        `Failed to automatically create all Clio Custom Actions for user ${userId}. Some may need to be created manually or via a separate process.`
       );
       // You could potentially add a flag to the redirect URL here if needed: ?clio_action_status=failed
     }
