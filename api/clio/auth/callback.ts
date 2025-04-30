@@ -360,17 +360,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { data: upsertData, error: dbError } = await supabaseAdmin
       .from("user_integrations")
       .upsert(upsertPayload, { onConflict: "user_id, integration_name" }) // Assumes unique constraint on (user_id, integration_name)
-      .select()
-      .single();
+      .select(); // Removed .single()
 
-    if (dbError) {
+    if (dbError || !upsertData || upsertData.length === 0) {
       console.error(
         `Database error storing Clio integration details for OpenEval user ${userId}:`,
-        dbError
+        dbError || "No data returned from upsert."
       );
       // If we failed to store the Clio User ID previously, this error might be because the column doesn't exist yet.
       if (
-        dbError.message.includes(
+        dbError?.message.includes(
           'column "integration_user_id" of relation "user_integrations" does not exist'
         )
       ) {

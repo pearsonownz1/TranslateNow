@@ -299,17 +299,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log(
       `Looking up integration details for Clio User ID: ${clioUserId}`
     );
-    const { data: integrationData, error: dbFetchError } = await supabaseAdmin
-      .from("user_integrations")
-      .select("user_id, access_token, refresh_token, expires_at") // Select internal user_id too
-      .eq("integration_name", "clio")
-      .eq("integration_user_id", clioUserId) // Match using the stored Clio User ID
-      .single();
+    // Fetch integration data. Do not use .single() as there might be duplicate rows
+    // for the same integration_user_id due to potential data issues or logic flaws.
+    const { data: integrationDataArray, error: dbFetchError } =
+      await supabaseAdmin
+        .from("user_integrations")
+        .select("user_id, access_token, refresh_token, expires_at") // Select internal user_id
+        .eq("integration_name", "clio")
+        .eq("integration_user_id", clioUserId); // Match using the stored Clio User ID
+    // Removed .single()
 
-    if (dbFetchError || !integrationData) {
+    if (
+      dbFetchError ||
+      !integrationDataArray ||
+      integrationDataArray.length === 0
+    ) {
       console.error(
         `Failed to find integration credentials for Clio User ID ${clioUserId}:`,
-        dbFetchError
+        dbFetchError || "No data returned from query."
       );
       // Check if the error is because the column doesn't exist
       if (
@@ -330,6 +337,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Integration not found or not configured correctly for this Clio user.",
       });
     }
+
+    // Assuming the first result is the correct one if duplicates exist
+    const integrationData = integrationDataArray[0];
 
     const internalUserId = integrationData.user_id;
     console.log(
