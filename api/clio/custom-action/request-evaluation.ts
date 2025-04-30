@@ -388,7 +388,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ",display_number,description,client{id,etag,name,email_addresses}";
       } else if (subjectUrlRelative.includes("/documents/")) {
         // Use parent instead of document_holder
-        fields += ",name,parent{id,type}"; // Get parent info (Matter or Contact)
+        fields += ",name,parent{id,type,matter}"; // Get parent info (Matter or Contact)
       }
       const detailsUrl = `${clioApiBaseUrl}${subjectUrlRelative}?fields=${fields}`; // Use relative URL from input
       console.log(`Fetching full subject details from: ${detailsUrl}`);
