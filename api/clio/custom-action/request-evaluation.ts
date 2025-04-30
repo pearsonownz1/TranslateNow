@@ -473,34 +473,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log(
         `[Document Subject] Full subjectData: ${JSON.stringify(subjectData, null, 2)}`
       ); // Added log
-      // Use the parent data fetched earlier and the recursive helper
       const parentInfo = subjectData.parent;
       console.log(
         `[Document Subject] Inspecting subjectData.parent: ${JSON.stringify(parentInfo)}`
       ); // Modified log
 
-      if (parentInfo && parentInfo.id && parentInfo.type) {
+      // Prioritize nested matter ID if parent is a Folder and has it
+      if (parentInfo?.type === "Folder" && parentInfo.matter?.id) {
         console.log(
-          `[Document Subject] Starting recursive search for Matter ID from parent: Type=${parentInfo.type}, ID=${parentInfo.id}`
-        ); // Modified log
-        matterIdToStore = await findMatterIdRecursive(parentInfo, accessToken);
-        if (matterIdToStore) {
-          console.log(
-            `[Document Subject] Successfully found Matter ID ${matterIdToStore} via recursive search.`
-          ); // Modified log
+          `[Document Subject] Found nested Matter ID via Folder parent: ${parentInfo.matter.id}`
+        );
+        const matterIdNum = parseInt(String(parentInfo.matter.id), 10);
+        if (!isNaN(matterIdNum)) {
+          matterIdToStore = matterIdNum;
         } else {
           console.warn(
-            `[Document Subject] Recursive search did not find an associated Matter ID starting from parent Type=${parentInfo.type}, ID=${parentInfo.id}`
-          ); // Modified log
+            `[Document Subject] Nested Matter ID is not a parseable number: ${parentInfo.matter.id}`
+          );
+        }
+      } else if (parentInfo?.type === "Matter" && parentInfo.id) {
+        console.log(
+          `[Document Subject] Found Matter ID directly via Matter parent: ${parentInfo.id}`
+        );
+        const matterIdNum = parseInt(String(parentInfo.id), 10);
+        if (!isNaN(matterIdNum)) {
+          matterIdToStore = matterIdNum;
+        } else {
+          console.warn(
+            `[Document Subject] Matter parent ID is not a parseable number: ${parentInfo.id}`
+          );
         }
       } else {
         console.warn(
-          `[Document Subject] Document ${documentId} has no parent information provided by the API.`
-        ); // Modified log
+          `[Document Subject] Document ${documentId} is not directly linked to a Matter or a Folder with a nested Matter.`
+        );
         // matterIdToStore remains null
       }
+
       console.log(
-        `[Document Subject] After recursive search, matterIdToStore is: ${matterIdToStore}`
+        `[Document Subject] Determined matterIdToStore: ${matterIdToStore}`
       ); // Added log
     }
 
