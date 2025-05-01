@@ -250,7 +250,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- Update Quote Status in Supabase ---
     const { error: updateError } = await supabaseAdmin
       .from("clio_quotes")
-      .update({ status: "completed", updated_at: new Date().toISOString() })
+      .update({ status: "completed" })
       .eq("id", clioQuoteId);
 
     if (updateError)
