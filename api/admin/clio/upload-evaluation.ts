@@ -216,18 +216,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const fileBuffer = fs.readFileSync(tempFilePath);
 
-    // Ensure all headers are strings
-    const stringifiedHeaders: Record<string, string> = {};
-    for (const key in putHeaders) {
-      if (Object.prototype.hasOwnProperty.call(putHeaders, key)) {
-        const value = putHeaders[key];
-        stringifiedHeaders[key] = String(value); // Convert to string
-      }
-    }
+    // Transform putHeaders array into a simple key-value object
+    const transformedHeaders: Record<string, string> = {};
+    putHeaders.forEach((header) => {
+      transformedHeaders[header.name] = header.value;
+    });
 
     const uploadFileResponse = await fetch(putUrl, {
       method: "PUT",
-      headers: stringifiedHeaders, // Use the stringified headers
+      headers: transformedHeaders, // Use the transformed headers
       body: fileBuffer, // Send the raw file buffer as the body
     });
 
