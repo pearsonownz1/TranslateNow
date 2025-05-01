@@ -161,7 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Add the fields parameter to the upload URL as shown in the snippet
     const uploadUrlWithFields = `${uploadUrl}?fields=id,latest_document_version{uuid,put_url,put_headers}`;
     console.log(`Uploading evaluation to Clio URL: ${uploadUrlWithFields}`);
-    console.log(`Uploading evaluation with clioFormData: ${clioFormData}`);
+    console.log(`Uploading evaluation with clioFormData:`, clioFormData);
 
     const clioResponse = await fetch(uploadUrlWithFields, {
       method: "POST",
