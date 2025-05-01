@@ -153,11 +153,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     };
 
-    // The API snippet shows the document data directly under 'data'
-    const payloadData = { data: documentData };
-    const payloadDataString = JSON.stringify(payloadData);
-    console.log("Payload 'data' JSON being sent:", payloadDataString);
-    clioFormData.append("data", payloadDataString);
+    // Stringify the document data directly to be the value of the 'data' form part
+    const documentDataString = JSON.stringify(documentData);
+    console.log("Document 'data' JSON being sent:", documentDataString);
+    clioFormData.append("data", documentDataString);
 
     // Add the fields parameter to the upload URL as shown in the snippet
     const uploadUrlWithFields = `${uploadUrl}?fields=id,latest_document_version{uuid,put_url,put_headers}`;
@@ -220,12 +219,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
     // --- Respond to Client ---
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Evaluation uploaded and sent to Clio successfully.",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Evaluation uploaded and sent to Clio successfully.",
+    });
   } catch (error: any) {
     console.error("Error processing Clio evaluation upload request:", error);
     const message = error.message || "An unknown error occurred.";
@@ -233,12 +230,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (message.startsWith("Cannot upload evaluation:")) {
       res.status(400).json({ success: false, error: message });
     } else {
-      res
-        .status(500)
-        .json({
-          success: false,
-          error: `Failed to upload evaluation: ${message}`,
-        });
+      res.status(500).json({
+        success: false,
+        error: `Failed to upload evaluation: ${message}`,
+      });
     }
   } finally {
     if (tempFilePath) {
