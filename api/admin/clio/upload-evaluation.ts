@@ -216,9 +216,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const fileBuffer = fs.readFileSync(tempFilePath);
 
+    // Ensure all headers are strings
+    const stringifiedHeaders: Record<string, string> = {};
+    for (const key in putHeaders) {
+      if (Object.prototype.hasOwnProperty.call(putHeaders, key)) {
+        const value = putHeaders[key];
+        stringifiedHeaders[key] = String(value); // Convert to string
+      }
+    }
+
     const uploadFileResponse = await fetch(putUrl, {
       method: "PUT",
-      headers: putHeaders, // Use the headers provided by Clio
+      headers: stringifiedHeaders, // Use the stringified headers
       body: fileBuffer, // Send the raw file buffer as the body
     });
 
@@ -258,12 +267,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
     // --- Respond to Client ---
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Evaluation uploaded and sent to Clio successfully.",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Evaluation uploaded and sent to Clio successfully.",
+    });
   } catch (error: any) {
     console.error("Error processing Clio evaluation upload request:", error);
     const message = error.message || "An unknown error occurred.";
