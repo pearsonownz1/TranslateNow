@@ -132,76 +132,114 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: "Failed to process integration credentials." });
     }
 
-    // --- Upload Document to Clio ---
-    const uploadUrl = `${clioApiBaseUrl}/api/v4/documents`;
+    // --- Upload Document to Clio (Two-Step Process) ---
+
+    // Step 1: Create Document Entry and Get Upload URL
+    const createDocumentUrl = `${clioApiBaseUrl}/api/v4/documents?fields=id,latest_document_version{uuid,put_url,put_headers}`;
     console.log(
-      `Uploading evaluation to Clio URL: ${uploadUrl} for Matter ID: ${matterIdForUpload}`
+      `Step 1: Creating document entry in Clio via POST to ${createDocumentUrl}`
     );
 
-    const clioFormData = new FormData();
-    const fileBuffer = fs.readFileSync(tempFilePath);
-    const fileBlob = new Blob([fileBuffer], { type: mimeType });
-    clioFormData.append("file", fileBlob, originalFilename);
-
-    // Construct the metadata using the fetched matter_id, matching Clio API structure
-    const documentData: any = {
-      name: `Evaluation - ${originalFilename}`,
-      // type and category might be set differently or not needed in this structure
-      parent: {
-        id: matterIdForUpload, // Use the stored matter ID
-        type: "Matter", // Link to a Matter
+    const documentMetadata = {
+      data: {
+        name: `Evaluation - ${originalFilename}`,
+        parent: {
+          id: matterIdForUpload,
+          type: "Matter",
+        },
       },
     };
 
-    // Stringify the document data directly to be the value of the 'data' form part
-    const documentDataString = JSON.stringify(documentData);
-    console.log("Document 'data' JSON being sent:", documentDataString);
-    clioFormData.append("data", documentDataString);
-
-    // Add the fields parameter to the upload URL as shown in the snippet
-    const uploadUrlWithFields = `${uploadUrl}?fields=id,latest_document_version{uuid,put_url,put_headers}`;
-    console.log(`Uploading evaluation to Clio URL: ${uploadUrlWithFields}`);
-    console.log(`Uploading evaluation with clioFormData:`, clioFormData);
-
-    const clioResponse = await fetch(uploadUrlWithFields, {
+    const createDocumentResponse = await fetch(createDocumentUrl, {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
-      body: clioFormData,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json", // Send metadata as JSON
+      },
+      body: JSON.stringify(documentMetadata),
     });
 
-    if (!clioResponse.ok) {
-      let errorDetails = `Clio API Error: ${clioResponse.status} ${clioResponse.statusText}`;
+    if (!createDocumentResponse.ok) {
+      let errorDetails = `Clio API Error (Step 1 - Create Document): ${createDocumentResponse.status} ${createDocumentResponse.statusText}`;
       try {
-        const errorJson = await clioResponse.json();
+        const errorJson = await createDocumentResponse.json();
         console.error(
-          "Clio API Error Response Body:",
+          "Clio API Error Response Body (Step 1):",
           JSON.stringify(errorJson, null, 2)
         );
         const specificMessage =
           errorJson?.error?.message ||
           errorJson?.message ||
           JSON.stringify(errorJson);
-        errorDetails = `Clio API Error (${clioResponse.status}): ${specificMessage}`;
+        errorDetails = `Clio API Error (Step 1 - ${createDocumentResponse.status}): ${specificMessage}`;
       } catch (e) {
         try {
-          const errorText = await clioResponse.text();
-          console.error("Clio API Error Response Text:", errorText);
+          const errorText = await createDocumentResponse.text();
+          console.error("Clio API Error Response Text (Step 1):", errorText);
           errorDetails += `\nResponse Text: ${errorText}`;
         } catch (_) {
-          console.error("Could not read Clio API error response body.");
+          console.error(
+            "Could not read Clio API error response body (Step 1)."
+          );
         }
       }
       console.error(
-        `Failed to upload evaluation to Clio. Details: ${errorDetails}`
+        `Failed to create document entry in Clio. Details: ${errorDetails}`
       );
-      throw new Error(`Failed to upload evaluation to Clio: ${errorDetails}`);
+      throw new Error(
+        `Failed to create document entry in Clio: ${errorDetails}`
+      );
     }
 
-    const clioUploadResult = await clioResponse.json();
+    const createDocumentResult = await createDocumentResponse.json();
+    const documentId = createDocumentResult?.data?.id;
+    const putUrl = createDocumentResult?.data?.latest_document_version?.put_url;
+    const putHeaders =
+      createDocumentResult?.data?.latest_document_version?.put_headers;
+
+    if (!documentId || !putUrl || !putHeaders) {
+      console.error(
+        "Missing document ID, put_url, or put_headers in Step 1 response:",
+        createDocumentResult
+      );
+      throw new Error("Failed to get document upload details from Clio.");
+    }
+
     console.log(
-      "Successfully uploaded evaluation to Clio:",
-      clioUploadResult?.data?.id
+      `Step 1 successful. Created document ID: ${documentId}. Got put_url and put_headers.`
     );
+
+    // Step 2: Upload File Content to the Signed URL
+    console.log(
+      `Step 2: Uploading file content to signed URL via PUT to ${putUrl}`
+    );
+
+    const fileBuffer = fs.readFileSync(tempFilePath);
+
+    const uploadFileResponse = await fetch(putUrl, {
+      method: "PUT",
+      headers: putHeaders, // Use the headers provided by Clio
+      body: fileBuffer, // Send the raw file buffer as the body
+    });
+
+    if (!uploadFileResponse.ok) {
+      let errorDetails = `Clio API Error (Step 2 - Upload File): ${uploadFileResponse.status} ${uploadFileResponse.statusText}`;
+      // Note: Signed URL errors might not return JSON
+      try {
+        const errorText = await uploadFileResponse.text();
+        console.error("Clio API Error Response Text (Step 2):", errorText);
+        errorDetails += `\nResponse Text: ${errorText}`;
+      } catch (_) {
+        console.error("Could not read Clio API error response body (Step 2).");
+      }
+
+      console.error(
+        `Failed to upload file content to signed URL. Details: ${errorDetails}`
+      );
+      throw new Error(`Failed to upload file content to Clio: ${errorDetails}`);
+    }
+
+    console.log(`Step 2 successful. File content uploaded to signed URL.`);
 
     // --- Update Quote Status in Supabase ---
     const { error: updateError } = await supabaseAdmin
@@ -220,10 +258,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
     // --- Respond to Client ---
-    res.status(200).json({
-      success: true,
-      message: "Evaluation uploaded and sent to Clio successfully.",
-    });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Evaluation uploaded and sent to Clio successfully.",
+      });
   } catch (error: any) {
     console.error("Error processing Clio evaluation upload request:", error);
     const message = error.message || "An unknown error occurred.";
