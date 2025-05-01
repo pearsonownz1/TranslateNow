@@ -205,6 +205,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error("Failed to get document upload details from Clio.");
     }
 
+    console.log(`Upload API Result`, createDocumentResult);
+
     console.log(
       `Step 1 successful. Created document ID: ${documentId}. Got put_url and put_headers.`
     );
