@@ -220,7 +220,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Transform putHeaders array into a simple key-value object
     const transformedHeaders: Record<string, string> = {};
-    putHeaders.forEach((header: { name: string; value: string }) => { // Added type annotation for header
+    putHeaders.forEach((header) => {
       transformedHeaders[header.name] = header.value;
     });
 
@@ -249,10 +249,72 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log(`Step 2 successful. File content uploaded to signed URL.`);
 
+    // Step 3: Mark Document as Fully Uploaded (PATCH)
+    if (
+      documentId &&
+      createDocumentResult?.data?.latest_document_version?.uuid
+    ) {
+      const markUploadedUrl = `${clioApiBaseUrl}/api/v4/documents/${documentId}?fields=id,latest_document_version{fully_uploaded}`;
+      const markUploadedPayload = {
+        data: {
+          uuid: createDocumentResult.data.latest_document_version.uuid,
+          fully_uploaded: true,
+        },
+      };
+      console.log(
+        `Step 3: Marking document as fully uploaded via PATCH to ${markUploadedUrl}`
+      );
+
+      const markUploadedResponse = await fetch(markUploadedUrl, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json", // Send metadata as JSON
+        },
+        body: JSON.stringify(markUploadedPayload),
+      });
+
+      if (!markUploadedResponse.ok) {
+        let errorDetails = `Clio API Error (Step 3 - Mark Uploaded): ${markUploadedResponse.status} ${markUploadedResponse.statusText}`;
+        try {
+          const errorJson = await markUploadedResponse.json();
+          console.error(
+            "Clio API Error Response Body (Step 3):",
+            JSON.stringify(errorJson, null, 2)
+          );
+          const specificMessage =
+            errorJson?.error?.message ||
+            errorJson?.message ||
+            JSON.stringify(errorJson);
+          errorDetails = `Clio API Error (Step 3 - ${markUploadedResponse.status}): ${specificMessage}`;
+        } catch (e) {
+          try {
+            const errorText = await markUploadedResponse.text();
+            console.error("Clio API Error Response Text (Step 3):", errorText);
+            errorDetails += `\nResponse Text: ${errorText}`;
+          } catch (_) {
+            console.error(
+              "Could not read Clio API error response body (Step 3)."
+            );
+          }
+        }
+        console.error(
+          `Failed to mark document as fully uploaded. Details: ${errorDetails}`
+        );
+        // Consider throwing an error here or logging a warning, depending on requirements
+      } else {
+        console.log(`Step 3 successful. Document marked as fully uploaded.`);
+      }
+    } else {
+      console.warn(
+        "Could not mark document as fully uploaded because documentId or uuid was missing."
+      );
+    }
+
     // --- Update Quote Status in Supabase ---
     const { error: updateError } = await supabaseAdmin
       .from("clio_quotes")
-      .update({ status: "completed", updated_at: new Date().toISOString() }) // Added updated_at back
+      .update({ status: "completed", updated_at: new Date().toISOString() })
       .eq("id", clioQuoteId);
 
     if (updateError)
