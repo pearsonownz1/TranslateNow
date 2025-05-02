@@ -24,6 +24,11 @@ export default defineConfig({
     tempo(),
     sitemap({ hostname: 'https://v0-translate-fqgfpb709-guy-gcsorgs-projects.vercel.app' }), // Add sitemap plugin
   ],
+  build: { // Add build options
+    rollupOptions: {
+      external: ['bcrypt'] // Mark bcrypt as external for build
+    }
+  },
   resolve: {
     preserveSymlinks: true,
     alias: {
