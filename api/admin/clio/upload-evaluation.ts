@@ -159,6 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify(documentMetadata),
     });
 
+    console.log("accessToken", accessToken);
     if (!createDocumentResponse.ok) {
       let errorDetails = `Clio API Error (Step 1 - Create Document): ${createDocumentResponse.status} ${createDocumentResponse.statusText}`;
       try {
