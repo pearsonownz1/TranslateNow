@@ -196,6 +196,7 @@ async function createOpenEvalQuoteRequest(
   details: {
     clioSubjectId?: string | number;
     clioSubjectType?: "matter" | "document";
+    clioFolderId: number | null;
     clioMatterId: number | null; // <<< ADDED: Store the determined Matter ID
     clioContactName?: string;
     clioContactEmail?: string;
@@ -219,6 +220,7 @@ async function createOpenEvalQuoteRequest(
       // Store generic subject ID and type, or map based on type
       clio_subject_id: details.clioSubjectId, // Keep original subject info
       clio_subject_type: details.clioSubjectType,
+      clio_folder_id: details.clioFolderId,
       clio_matter_id: details.clioMatterId, // <<< ADDED: Store determined Matter ID (can be null)
       client_name: details.clioContactName,
       client_email: details.clioContactEmail,
@@ -474,6 +476,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `[Document Subject] Full subjectData: ${JSON.stringify(subjectData, null, 2)}`
       ); // Added log
       const parentInfo = subjectData.parent;
+
       console.log(
         `[Document Subject] Inspecting subjectData.parent: ${JSON.stringify(parentInfo)}`
       ); // Modified log
@@ -520,6 +523,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       internalUserId: internalUserId,
       clioSubjectId: subjectData.id,
       clioSubjectType: subjectType,
+      clioFolderId: subjectData.parent.id,
       clioMatterId: matterIdToStore, // Pass determined Matter ID (can be null)
       clioContactName: contactName, // May be undefined if subject was document
       clioContactEmail: primaryEmail, // May be undefined if subject was document
@@ -538,6 +542,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       internalUserId: quoteDetails.internalUserId,
       clioSubjectId: quoteDetails.clioSubjectId,
       clioSubjectType: quoteDetails.clioSubjectType,
+      clioFolderId: quoteDetails.clioFolderId,
       clioMatterId: quoteDetails.clioMatterId, // Check this value specifically
       clioContactName: quoteDetails.clioContactName,
       clioContactEmail: quoteDetails.clioContactEmail,

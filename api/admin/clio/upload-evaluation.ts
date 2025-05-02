@@ -81,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- Fetch Quote Details (including the stored clio_matter_id) ---
     const { data: quoteData, error: quoteError } = await supabaseAdmin
       .from("clio_quotes")
-      .select("user_id, clio_matter_id") // Fetch user_id and the stored clio_matter_id
+      .select("user_id, clio_matter_id, clio_folder_id") // Fetch user_id and the stored clio_matter_id
       .eq("id", clioQuoteId)
       .single();
 
@@ -91,6 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const userId = quoteData.user_id;
     const matterIdForUpload = quoteData.clio_matter_id; // Use the stored Matter ID
+    const folderIdForUpload = quoteData.clio_folder_id;
 
     console.log(
       `Found quote details: UserID ${userId}, Stored Clio Matter ID: ${matterIdForUpload}`
@@ -144,8 +145,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       data: {
         name: `Evaluation - ${originalFilename}`,
         parent: {
-          id: matterIdForUpload,
-          type: "Matter",
+          id: folderIdForUpload,
+          type: "Folder",
         },
       },
     };
