@@ -251,7 +251,7 @@ const MyQuotesPage = () => {
                       ) : quote.source === 'api' && quote.status === 'completed' && quote.us_equivalent ? (
                         <span className="text-green-700">{quote.us_equivalent}</span>
                       ) : quote.source === 'api' && quote.status === 'rejected' && quote.unable_to_provide ? (
-                        <span className="text-red-600" title={quote.rejection_reason || ''}>Rejected</span>
+                        <span className="text-red-600">{quote.rejection_reason || 'Rejected'}</span>
                       ) : quote.source === 'clio' ? (
                         <span className="italic text-gray-500">Clio Request</span> // Indicate Clio source if no specific response/price
                       ) : (

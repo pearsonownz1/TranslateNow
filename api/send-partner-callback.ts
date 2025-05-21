@@ -8,8 +8,10 @@ interface CallbackRequestBody {
   payload: {
     quote_request_id: string;
     applicant_name: string;
-    us_equivalent: string;
-    status: string; // e.g., 'completed'
+    status: string; // e.g., 'completed', 'rejected'
+    us_equivalent?: string; // Required for 'completed' status
+    rejection_reason?: string; // Required for 'rejected' status
+    unable_to_provide?: boolean; // For rejection cases
   };
 }
 
@@ -33,8 +35,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!callbackUrl || !webhookSecret || !payload) {
       return res.status(400).json({ error: 'Missing required fields: callbackUrl, webhookSecret, or payload' });
     }
-    if (!payload.quote_request_id || !payload.applicant_name || !payload.us_equivalent || !payload.status) {
-       return res.status(400).json({ error: 'Missing required fields in payload' });
+    
+    // Basic validation for all payloads
+    if (!payload.quote_request_id || !payload.applicant_name || !payload.status) {
+      return res.status(400).json({ error: 'Missing required fields in payload: quote_request_id, applicant_name, or status' });
+    }
+    
+    // Conditional validation based on status
+    if (payload.status === 'completed' && !payload.us_equivalent) {
+      return res.status(400).json({ error: 'Missing us_equivalent field for completed status' });
+    }
+    
+    if (payload.status === 'rejected' && !payload.rejection_reason) {
+      return res.status(400).json({ error: 'Missing rejection_reason field for rejected status' });
     }
 
     const requestBody = JSON.stringify(payload);
