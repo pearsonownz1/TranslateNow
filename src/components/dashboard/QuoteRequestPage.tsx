@@ -27,6 +27,7 @@ const QuoteRequestPage = () => {
   const [userName, setUserName] = useState<string>(""); // Add state for user name
   // New state for the form fields
   const [country, setCountry] = useState<string>("");
+  const [collegeAttended, setCollegeAttended] = useState<string>("");
   const [graduationYear, setGraduationYear] = useState<string>("");
   const [degreeReceived, setDegreeReceived] = useState<string>("");
   const [notes, setNotes] = useState("");
@@ -108,8 +109,8 @@ const QuoteRequestPage = () => {
       return;
     }
     // Basic validation for new fields
-    if (!country || !graduationYear || !degreeReceived) {
-       toast({ title: "Missing Information", description: "Please fill in Country, Year of Graduation, and Degree Received.", variant: "destructive" });
+    if (!country || !collegeAttended || !graduationYear || !degreeReceived) {
+       toast({ title: "Missing Information", description: "Please fill in all required education details.", variant: "destructive" });
        return;
     }
 
@@ -125,6 +126,7 @@ const QuoteRequestPage = () => {
       user_id: userId,
       applicant_name: userName, // Add user's name here
       country_of_education: country, // New field
+      college_attended: collegeAttended, // New field for college attended
       year_of_graduation: parseInt(graduationYear, 10), // New field (assuming integer)
       degree_received: degreeReceived, // New field
       notes: notes,
@@ -160,6 +162,7 @@ const QuoteRequestPage = () => {
            quoteId: savedQuote.id,
            userEmail: userEmail,
            country: quoteData.country_of_education, // Send new data
+           collegeAttended: quoteData.college_attended, // Send college attended
            graduationYear: quoteData.year_of_graduation, // Send new data
            degreeReceived: quoteData.degree_received, // Send new data
            notes: quoteData.notes,
@@ -233,8 +236,21 @@ const QuoteRequestPage = () => {
                  </Select>
                </div>
                <div>
+                 <Label htmlFor="college-attended" className="mb-2 block">
+                   College Attended
+                 </Label>
+                 <Input
+                   id="college-attended"
+                   type="text"
+                   placeholder="e.g., University of Oxford"
+                   value={collegeAttended}
+                   onChange={(e) => setCollegeAttended(e.target.value)}
+                   required
+                 />
+               </div>
+               <div>
                  <Label htmlFor="graduation-year" className="mb-2 block">
-                   Year of Graduation
+                   Year of Graduation or End Year of Enrollment
                  </Label>
                  <Input
                    id="graduation-year"
@@ -249,7 +265,7 @@ const QuoteRequestPage = () => {
                </div>
                 <div>
                  <Label htmlFor="degree-received" className="mb-2 block">
-                   Degree Received
+                   Degree Received with Major Concentration
                  </Label>
                  <Input
                    id="degree-received"
@@ -282,8 +298,8 @@ const QuoteRequestPage = () => {
          {/* Removed Optional Services Placeholder */}
 
          <div className="flex justify-end">
-           {/* Updated disabled condition */}
-           <Button type="submit" size="lg" disabled={isLoading || !userId || !country || !graduationYear || !degreeReceived}>
+           {/* Updated disabled condition to include collegeAttended */}
+           <Button type="submit" size="lg" disabled={isLoading || !userId || !country || !collegeAttended || !graduationYear || !degreeReceived}>
              {isLoading ? (
                <>
                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
