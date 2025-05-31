@@ -13,7 +13,8 @@ const ApiDocsPage = () => {
   const requestPayloadExample = `{
   "applicant_name": "Jane Doe",
   "country_of_education": "India",
-  "degree_received": "Bachelor of Engineering",
+  "college_attended": "University of Delhi",
+  "degree_received": "Bachelor of Engineering in Computer Science",
   "year_of_graduation": 2020,
   "notes": "Optional notes about the applicant or request."
 }`; // Updated example
@@ -125,8 +126,9 @@ const ApiDocsPage = () => {
               <ul className="list-disc list-inside text-sm text-gray-700">
                 <li>`applicant_name` (string): The full name of the applicant.</li>
                 <li>`country_of_education` (string): The country where the applicant received their education.</li>
-                <li>`degree_received` (string): The name of the degree or credential received.</li>
-                <li>`year_of_graduation` (number): The year the applicant graduated (integer).</li>
+                <li>`college_attended` (string): The name of the college or university attended.</li>
+                <li>`degree_received` (string): The name of the degree with major concentration (e.g., "Bachelor of Science in Computer Science").</li>
+                <li>`year_of_graduation` (number): The year the applicant graduated or end year of enrollment (integer).</li>
                 <li>`notes` (string, optional): Any additional notes relevant to the request.</li>
               </ul>
                <h4 className="font-semibold pt-2">Example Request (cURL):</h4>
