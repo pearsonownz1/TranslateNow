@@ -218,31 +218,70 @@ const AdminQuoteDetailsPage = () => {
      let callbackError: string | null = null;
 
      try {
-        // Ensure api_key_id exists before querying
+        // 1. Prepare update data based on whether rejecting or completing
+        const updateData: Partial<ApiQuote> = unableToProvide
+          ? {
+              status: 'rejected', // New status for rejection
+              unable_to_provide: true,
+              rejection_reason: rejectionReason,
+              us_equivalent: null, // Clear any previously entered equivalent
+            }
+          : {
+              status: 'completed',
+              us_equivalent: usEquivalent,
+              unable_to_provide: false, // Explicitly set to false
+              rejection_reason: null, // Clear any previously entered reason
+            };
+
+        // 2. Update the api_quote_requests table first
+        const { error: dbUpdateError } = await supabase
+            .from('api_quote_requests')
+            .update(updateData)
+            .eq('id', quoteDetails.id);
+
+        if (dbUpdateError) {
+            updateError = dbUpdateError;
+            console.error("Raw dbUpdateError:", dbUpdateError);
+            throw new Error(`Failed to update API quote request: ${dbUpdateError.message}`);
+        }
+        
+        // 3. Update local state immediately after successful DB update
+        const newStatus = unableToProvide ? 'rejected' : 'completed';
+        setQuoteDetails({
+            ...quoteDetails,
+            ...updateData,
+            status: newStatus,
+        });
+        
+        toast({
+            title: unableToProvide ? "Quote Rejected" : "US Equivalent Saved",
+            description: unableToProvide ? "Rejection reason saved successfully." : "The US Equivalent has been saved successfully.",
+        });
+        
+        // 4. Check if we can send a callback
+        // If no API key ID, skip the callback part
         if (!quoteDetails?.api_key_id) {
-            throw new Error("API Key ID is missing from the quote details.");
+            console.warn("API Key ID is missing from the quote details. Skipping callback.");
+            return; // Exit the function here
         }
 
-        // 1. Fetch callback URL and secret associated with the API key
-        // Use .limit(1).maybeSingle() for robust fetching of zero or one record
+        // 5. Fetch callback URL and secret associated with the API key
         const { data: apiKeyData, error: keyFetchError } = await supabase
             .from('api_keys')
             .select('callback_url, webhook_secret')
             .eq('id', quoteDetails.api_key_id)
-            .limit(1) // Defensively limit to 1 row server-side
-            .maybeSingle(); // Return null instead of error if 0 rows, still errors on >1 row *if* limit wasn't respected
+            .limit(1)
+            .maybeSingle();
 
         if (keyFetchError) {
-            // Log the raw error for more details
             console.error("Raw keyFetchError:", keyFetchError);
-            // Re-throw with a clearer message
             throw new Error(`Failed during API key details query: ${keyFetchError.message}`);
         }
 
         // Check if a key was actually found
         if (!apiKeyData) {
-             // No key found
-             throw new Error(`API key details not found for key ID: ${quoteDetails.api_key_id}`);
+             console.warn(`API key details not found for key ID: ${quoteDetails.api_key_id}. Skipping callback.`);
+             return; // Exit the function here
         }
 
         // Proceed using the found apiKeyData
@@ -252,50 +291,8 @@ const AdminQuoteDetailsPage = () => {
         // Check if required callback info exists
         if (!callbackUrl || !webhookSecret) {
             console.warn(`Callback URL or Webhook Secret missing for API Key ID: ${quoteDetails.api_key_id}. Skipping callback.`);
-            // Proceed with DB update but skip callback
-         }
-
-         // 2. Prepare update data based on whether rejecting or completing
-         const updateData: Partial<ApiQuote> = unableToProvide
-           ? {
-               status: 'rejected', // New status for rejection
-               unable_to_provide: true,
-               rejection_reason: rejectionReason,
-               us_equivalent: null, // Clear any previously entered equivalent
-             }
-           : {
-               status: 'completed',
-               us_equivalent: usEquivalent,
-               unable_to_provide: false, // Explicitly set to false
-               rejection_reason: null, // Clear any previously entered reason
-             };
-
-         // 3. Update the api_quote_requests table
-         const { error: dbUpdateError } = await supabase
-             .from('api_quote_requests')
-             .update(updateData)
-             .eq('id', quoteDetails.id);
-            // Remove .select().maybeSingle() - just perform the update
-
-        if (dbUpdateError) {
-            updateError = dbUpdateError; // Store error to handle after finally block
-            // Log the raw update error
-            console.error("Raw dbUpdateError:", dbUpdateError);
-            throw new Error(`Failed to update API quote request: ${dbUpdateError.message}`);
+            return; // Exit the function here
         }
-        // If we reach here without an error, the update was successful
-
-         // Update local state immediately after successful DB update
-         const newStatus = unableToProvide ? 'rejected' : 'completed';
-         setQuoteDetails({
-             ...quoteDetails,
-             ...updateData, // Apply the changes to local state
-             status: newStatus, // Ensure status type matches
-         });
-         toast({
-             title: unableToProvide ? "Quote Rejected" : "US Equivalent Saved",
-             description: unableToProvide ? "Rejection reason saved successfully." : "The US Equivalent has been saved successfully.",
-         });
 
 
          // 4. Trigger the callback if URL and secret exist
