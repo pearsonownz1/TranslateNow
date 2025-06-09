@@ -36,7 +36,9 @@ interface ApiQuote {
     user_id: string; // User associated with the API key
     applicant_name: string;
     country_of_education: string;
+    college_attended: string; // Added college_attended field
     degree_received: string;
+    year_of_graduation: number; // Added year_of_graduation field
     status: 'pending' | 'reviewed' | 'completed' | 'failed' | 'rejected'; // Added 'rejected' status
     us_equivalent?: string; // The field admin needs to fill
     unable_to_provide?: boolean; // New field
@@ -506,8 +508,16 @@ const AdminQuoteDetailsPage = () => {
                    <span>{quoteDetails.country_of_education}</span>
                  </div>
                  <div className="flex justify-between">
+                   <span className="font-medium text-muted-foreground">College Attended:</span>
+                   <span>{quoteDetails.college_attended}</span>
+                 </div>
+                 <div className="flex justify-between">
                    <span className="font-medium text-muted-foreground">Degree Received:</span>
                    <span>{quoteDetails.degree_received}</span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="font-medium text-muted-foreground">Year of Graduation:</span>
+                   <span>{quoteDetails.year_of_graduation}</span>
                  </div>
                </>
              )}
