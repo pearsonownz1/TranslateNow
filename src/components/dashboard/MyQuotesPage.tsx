@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Zap, FileCode } from 'lucide-react'; // Import FileCode icon
+import { Loader2, Zap, FileCode, Eye } from 'lucide-react'; // Import Eye icon for viewing details
 import { Button } from '@/components/ui/button';
 
 // Define a unified structure for displaying quotes from either source
@@ -194,6 +194,12 @@ const MyQuotesPage = () => {
     navigate(`/checkout/pay-quote/${quoteId}`);
   };
 
+  const handleViewDetails = (quoteId: string, source: 'web' | 'api' | 'clio') => {
+    console.log(`Viewing details for ${source} quote ${quoteId}`);
+    // Navigate to a dedicated route for viewing quote details
+    navigate(`/dashboard/quotes/${source}/${quoteId}`);
+  };
+
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -259,15 +265,27 @@ const MyQuotesPage = () => {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                       {/* Pay button only shown for web quotes */}
-                      {quote.source === 'web' && quote.status === 'quoted' && quote.price != null && (
+                      <div className="flex justify-center space-x-2">
+                        {/* View details button for all quotes */}
                         <Button
                           size="sm"
-                          onClick={() => handlePayNow(quote.id, quote.price!)}
+                          variant="outline"
+                          onClick={() => handleViewDetails(quote.id, quote.source)}
+                          title="View Quote Details"
                         >
-                          Pay Now
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
+                        
+                        {/* Pay button only shown for web quotes */}
+                        {quote.source === 'web' && quote.status === 'quoted' && quote.price != null && (
+                          <Button
+                            size="sm"
+                            onClick={() => handlePayNow(quote.id, quote.price!)}
+                          >
+                            Pay Now
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -82,6 +82,7 @@ const IntegrationsPage = lazy(() => import("./components/dashboard/IntegrationsP
 const QuoteRequestPage = lazy(() => import("./components/dashboard/QuoteRequestPage"));
 // Removed import for QuoteSuccessPage
 const MyQuotesPage = lazy(() => import("./components/dashboard/MyQuotesPage")); // Import MyQuotesPage
+const QuoteDetailsPage = lazy(() => import("./components/dashboard/QuoteDetailsPage")); // Import QuoteDetailsPage
 
 
 // Admin components
@@ -556,6 +557,7 @@ function App() {
               <Route path="orders" element={<OrdersPage />} />
               <Route path="orders/:orderId" element={<OrderDetailsPage />} />
               <Route path="my-quotes" element={<MyQuotesPage />} /> {/* Add route for MyQuotesPage */}
+              <Route path="quotes/:source/:quoteId" element={<QuoteDetailsPage />} /> {/* Add route for QuoteDetailsPage */}
               <Route path="settings" element={<SettingsPage />} /> {/* Keep general settings */}
               <Route path="payment-methods" element={<PaymentMethodsPage />} /> {/* Add route for Payment Methods */}
               <Route path="addresses" element={<AddressesPage />} /> {/* Add route for Addresses */}
