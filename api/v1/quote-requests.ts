@@ -18,11 +18,11 @@ interface ApiKeyData {
 
 // Interface for expected request body
 interface QuoteRequestBody {
-  applicant_name: string;
   country_of_education: string;
+  college_attended: string;
   degree_received: string;
-  year_of_graduation: number; // Added
-  notes?: string; // Added optional notes
+  year_of_graduation: number;
+  notes?: string;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -82,10 +82,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const associatedUserId = validKeyData.user_id; // User who owns the key
 
     // 2. Validate Request Body
-    const { applicant_name, country_of_education, degree_received, year_of_graduation, notes } = req.body as QuoteRequestBody;
+    const { country_of_education, college_attended, degree_received, year_of_graduation, notes } = req.body as QuoteRequestBody;
 
     // Validate required fields
-    const requiredFields = ['applicant_name', 'country_of_education', 'degree_received', 'year_of_graduation'];
+    const requiredFields = ['country_of_education', 'college_attended', 'degree_received', 'year_of_graduation'];
     const missingFields = requiredFields.filter(field => !(req.body as any)[field]);
 
     if (missingFields.length > 0) {
@@ -119,14 +119,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from('api_quote_requests') // *** ASSUMPTION: Table name is 'api_quote_requests' ***
       .insert({
         api_key_id: apiKeyId,
-        user_id: associatedUserId, // Store the user associated with the key
-        applicant_name: applicant_name,
+        user_id: associatedUserId,
         country_of_education: country_of_education,
+        college_attended: college_attended,
         degree_received: degree_received,
-        year_of_graduation: year_of_graduation, // Added
-        notes: notes, // Added (will be null if not provided)
-        status: 'pending', // Initial status
-        // Add other relevant fields/defaults as needed by your table schema
+        year_of_graduation: year_of_graduation,
+        notes: notes,
+        status: 'pending',
       })
       .select('id') // Select the ID of the newly created record
       .single(); // Expect a single record

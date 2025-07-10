@@ -7,17 +7,16 @@ import { Link } from "react-router-dom";
 
 const ApiDocsPage = () => {
   // TODO: Use environment variable for API base URL
-  const apiBaseUrl = "https://api.openeval.com"; // NEW DOMAIN
+  const apiBaseUrl = "https://www.openeval.com/api"; // Updated to include www subdomain
   const endpointUrl = `${apiBaseUrl}/v1/quote-requests`;
 
   const requestPayloadExample = `{
-  "applicant_name": "Jane Doe",
   "country_of_education": "India",
   "college_attended": "University of Delhi",
   "degree_received": "Bachelor of Engineering in Computer Science",
   "year_of_graduation": 2020,
-  "notes": "Optional notes about the applicant or request."
-}`; // Updated example
+  "notes": "Optional notes about the request."
+}`;
 
   const successResponseExample = `{
   "message": "Quote request received successfully",
@@ -26,7 +25,6 @@ const ApiDocsPage = () => {
 
   const callbackPayloadExample = `{
   "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "applicant_name": "Jane Doe",
   "status": "completed",
   "us_equivalent": "Bachelor’s Degree in Engineering",
   "unable_to_provide": false
@@ -35,11 +33,10 @@ const ApiDocsPage = () => {
 // Example: Rejected
 {
   "quote_request_id": "def456uvw",
-  "applicant_name": "John Smith",
   "status": "rejected",
   "unable_to_provide": true,
-  "rejection_reason": "Documentation provided is insufficient for evaluation."
-}`; // Updated example with success/rejected cases
+  "rejection_reason": "Degree required on Native language"
+}`;
 
   const curlExample = `curl -X POST ${endpointUrl} \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
@@ -111,7 +108,7 @@ const ApiDocsPage = () => {
           <Card>
             <CardHeader>
               <CardTitle>Submit Quote Request</CardTitle>
-              <CardDescription>Send applicant details to initiate a quote request.</CardDescription>
+              <CardDescription>Send evaluation details to initiate a quote request.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p>Make a `POST` request to the following endpoint:</p>
@@ -124,11 +121,10 @@ const ApiDocsPage = () => {
               </pre>
               <h4 className="font-semibold pt-2">Required Fields:</h4>
               <ul className="list-disc list-inside text-sm text-gray-700">
-                <li>`applicant_name` (string): The full name of the applicant.</li>
-                <li>`country_of_education` (string): The country where the applicant received their education.</li>
+                <li>`country_of_education` (string): The country where the education was received.</li>
                 <li>`college_attended` (string): The name of the college or university attended.</li>
                 <li>`degree_received` (string): The name of the degree with major concentration (e.g., "Bachelor of Science in Computer Science").</li>
-                <li>`year_of_graduation` (number): The year the applicant graduated or end year of enrollment (integer).</li>
+                <li>`year_of_graduation` (number): The year of graduation or end year of enrollment (integer).</li>
                 <li>`notes` (string, optional): Any additional notes relevant to the request.</li>
               </ul>
                <h4 className="font-semibold pt-2">Example Request (cURL):</h4>
