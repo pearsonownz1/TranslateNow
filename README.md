@@ -141,12 +141,138 @@ The application is configured for deployment on Vercel:
 
 ## 📝 API Documentation
 
-The API documentation is available at `/api-docs` when the application is running. It includes:
+### Overview
 
-- Authentication instructions
-- Endpoint details
-- Request/response examples
-- Webhook integration guide
+The OpenEval Partner API allows you to integrate credential evaluation services directly into your application. Submit evaluation requests programmatically and receive results via webhooks.
+
+**Base URL**: `https://www.openeval.com/api`
+
+**Live Documentation**: Available at [https://www.openeval.com/api-docs](https://www.openeval.com/api-docs)
+
+### Getting Started
+
+1. **Create an Account**: Register at [https://www.openeval.com/register](https://www.openeval.com/register)
+2. **Generate API Key**: Navigate to your dashboard's "Integrations" section
+3. **Configure Webhook**: Set up a secure HTTPS callback URL for receiving results
+
+### Authentication
+
+All API requests must include a Bearer token in the Authorization header:
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+Replace `YOUR_API_KEY` with your actual secret key (starting with `sk_`).
+
+### Submit Quote Request
+
+Submit credential evaluation details to initiate a quote request.
+
+**Endpoint**: `POST /v1/quote-requests`
+
+**Headers**:
+```
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "country_of_education": "India",
+  "college_attended": "University of Delhi",
+  "degree_received": "Bachelor of Engineering in Computer Science",
+  "year_of_graduation": 2020,
+  "notes": "Optional notes about the request."
+}
+```
+
+**Required Fields**:
+- `country_of_education` (string): The country where the education was received
+- `college_attended` (string): The name of the college or university attended
+- `degree_received` (string): The name of the degree with major concentration (e.g., "Bachelor of Science in Computer Science")
+- `year_of_graduation` (number): The year of graduation or end year of enrollment (integer)
+- `notes` (string, optional): Any additional notes relevant to the request
+
+**Example Request (cURL)**:
+```bash
+curl -X POST https://www.openeval.com/api/v1/quote-requests \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "country_of_education": "India",
+    "college_attended": "University of Delhi",
+    "degree_received": "Bachelor of Engineering in Computer Science",
+    "year_of_graduation": 2020,
+    "notes": "Optional notes about the request."
+  }'
+```
+
+**Success Response (201 Created)**:
+```json
+{
+  "message": "Quote request received successfully",
+  "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+> **Important**: Store the `quote_request_id` to correlate with the callback later.
+
+### Webhook Callbacks
+
+Once our team processes the request and determines the US Equivalency, we will send a `POST` request to your configured Callback URL.
+
+**Callback Payload (Completed)**:
+```json
+{
+  "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "completed",
+  "us_equivalent": "Bachelor's Degree in Engineering",
+  "unable_to_provide": false
+}
+```
+
+**Callback Payload (Rejected)**:
+```json
+{
+  "quote_request_id": "def456uvw",
+  "status": "rejected",
+  "unable_to_provide": true,
+  "rejection_reason": "Degree required on Native language"
+}
+```
+
+### Webhook Security (HMAC Verification)
+
+To ensure callbacks genuinely originate from OpenEval, we include a signature in the `X-Webhook-Signature` header. This signature is an HMAC-SHA256 hash generated using your **Webhook Secret** and the raw request body.
+
+**Verification Steps**:
+1. Compute HMAC-SHA256 signature using your Webhook Secret and the raw request body
+2. Compare your computed signature (prefixed with `sha256=`) with the `X-Webhook-Signature` header value
+3. If they match, the request is authentic
+4. Reject requests with invalid signatures
+
+**Important**: Your endpoint should respond with a `2xx` status code (e.g., 200 OK) quickly to acknowledge receipt. Process the callback data asynchronously.
+
+### Error Responses
+
+The API returns standard HTTP status codes:
+
+- `200` - Success
+- `201` - Created (for successful quote requests)
+- `400` - Bad Request (invalid parameters)
+- `401` - Unauthorized (invalid API key)
+- `422` - Unprocessable Entity (validation errors)
+- `500` - Internal Server Error
+
+### Rate Limits
+
+API requests are subject to rate limiting. Contact support if you need higher limits for your integration.
+
+### Support
+
+For API support, contact us through your dashboard or email support@openeval.com.
 
 ## 🔒 Security Considerations
 
