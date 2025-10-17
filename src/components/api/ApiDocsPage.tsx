@@ -23,19 +23,25 @@ const ApiDocsPage = () => {
   "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 }`;
 
-  const callbackPayloadExample = `{
+  const completedPayloadExample = `{
   "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "status": "completed",
   "us_equivalent": "Bachelor’s Degree in Engineering",
   "unable_to_provide": false
-}
+}`;
 
-// Example: Rejected
-{
+  const rejectedPayloadExample = `{
   "quote_request_id": "def456uvw",
   "status": "rejected",
   "unable_to_provide": true,
   "rejection_reason": "Degree required on Native language"
+}`;
+
+  const proactiveNotificationPayloadExample = `{
+  "quote_request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "delayed",
+  "notification_type": "proactive",
+  "message": "Additional documentation is required. Please check your email for details."
 }`;
 
   const curlExample = `curl -X POST ${endpointUrl} \\
@@ -84,6 +90,24 @@ const ApiDocsPage = () => {
                    <Link to="/register">Sign Up</Link>
                  </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Allowed Rel Values */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Allowed rel Values</CardTitle>
+              <CardDescription>Permitted `rel` attributes for secure linking.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>
+                For security, we recommend using specific `rel` attributes on any links pointing to our service. The following values are permitted:
+              </p>
+              <ul className="list-disc list-inside text-sm text-gray-700 mt-2 space-y-1">
+                <li>`noreferrer`</li>
+                <li>`noopener`</li>
+                <li>`nofollow`</li>
+              </ul>
             </CardContent>
           </Card>
 
@@ -149,11 +173,26 @@ const ApiDocsPage = () => {
               <p>
                 Once our team processes the request and determines the US Equivalency, we will send a `POST` request to the **Callback URL** you configured in your dashboard's Integrations settings.
               </p>
-              <h4 className="font-semibold pt-2">Callback Payload (JSON):</h4>
+              <h4 className="font-semibold pt-2">Callback Payload Examples (JSON):</h4>
+              <p>Your callback URL will receive different payloads depending on the outcome of the evaluation. Here are some examples:</p>
+              
+              <h5 className="font-semibold pt-2 text-gray-800">Completed</h5>
               <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
-                <code>{callbackPayloadExample}</code>
+                <code>{completedPayloadExample}</code>
               </pre>
-              <h4 className="font-semibold pt-2">Verifying the Callback (HMAC Signature):</h4>
+
+              <h5 className="font-semibold pt-2 text-gray-800">Rejected</h5>
+              <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
+                <code>{rejectedPayloadExample}</code>
+              </pre>
+
+              <h5 className="font-semibold pt-2 text-gray-800">Proactive Notifications (e.g., Delays, Resumed)</h5>
+               <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
+                <code>{proactiveNotificationPayloadExample}</code>
+              </pre>
+              <p className="text-sm text-gray-600">The `status` field may indicate other states like `escalated` or `resumed`.</p>
+
+              <h4 className="font-semibold pt-4">Verifying the Callback (HMAC Signature):</h4>
               <p>
                 To ensure the callback genuinely originated from OpenEval, we include a signature in the `X-Webhook-Signature` header. This signature is an HMAC-SHA256 hash generated using your **Webhook Secret** (found in your Integrations settings) and the raw request body.
               </p>
@@ -163,6 +202,46 @@ const ApiDocsPage = () => {
               <p className="mt-2 text-sm text-gray-600">
                 **Important:** Your endpoint should respond with a `2xx` status code (e.g., 200 OK) quickly upon receiving the callback to acknowledge receipt. Any processing should happen asynchronously. Check the `status` field in the payload (`completed` or `rejected`) to determine the outcome.
               </p>
+            </CardContent>
+          </Card>
+          
+          {/* HireRight Payload Examples */}
+          <Card>
+            <CardHeader>
+              <CardTitle>HireRight Payload Examples</CardTitle>
+              <CardDescription>Examples of payloads HireRight can expect to receive.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <h5 className="font-semibold pt-2 text-gray-800">Rejected</h5>
+              <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
+                <code>{rejectedPayloadExample}</code>
+              </pre>
+              <h5 className="font-semibold pt-2 text-gray-800">Completed</h5>
+              <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
+                <code>{completedPayloadExample}</code>
+              </pre>
+              <h5 className="font-semibold pt-2 text-gray-800">Proactive Notifications (e.g., Delay, Escalations, Resumed)</h5>
+               <pre className="p-4 border rounded-md bg-gray-100 text-sm overflow-x-auto">
+                <code>{proactiveNotificationPayloadExample}</code>
+              </pre>
+            </CardContent>
+          </Card>
+
+          {/* Error Responses */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Error Responses</CardTitle>
+              <CardDescription>Understanding client-side and server-side errors.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>The API returns standard HTTP status codes to indicate the success or failure of a request.</p>
+              <h4 className="font-semibold pt-4">4xx Series (Client Errors)</h4>
+              <p className="text-sm text-gray-600">Issues with the request format or missing data.</p>
+              <ul className="list-disc list-inside text-sm text-gray-700 mt-2 space-y-1">
+                <li><strong>400 – Bad Request</strong>: Invalid/missing fields.</li>
+                <li><strong>401 – Unauthorized</strong>: Invalid API key or token.</li>
+                <li><strong>404 – Record Not Found</strong>: Invalid Request ID.</li>
+              </ul>
             </CardContent>
           </Card>
 
