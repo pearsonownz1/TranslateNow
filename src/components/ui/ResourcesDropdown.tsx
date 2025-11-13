@@ -6,7 +6,7 @@ import {
   Search,
 } from "lucide-react";
 import { Link } from "react-router-dom"; // Import Link
-import { useState } from "react";
+import React, { useState } from "react";
 
 const resources = [
   {
@@ -37,22 +37,55 @@ const resources = [
 
 export function ResourcesDropdown() {
   const [open, setOpen] = useState(false);
+  const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpen(false);
+    }, 150); // 150ms delay before closing
+  };
+
+  const handleMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    setOpen(true);
+  };
 
   return (
     <div
       className="relative group"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button className="flex items-center gap-1 text-base font-medium text-gray-800 hover:text-blue-600 transition">
         Resources
-        <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className={`ml-1 w-4 h-4 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-3 w-[420px] rounded-2xl bg-white shadow-2xl p-6 flex flex-col gap-4">
+        <div
+          className="absolute top-full left-0 z-50 mt-1 w-[420px] rounded-2xl bg-white shadow-2xl p-6 flex flex-col gap-4"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {/* Map over resources including href */}
           {resources.map(({ title, description, icon: Icon, href }, idx) => (
              // Wrap the item content in a Link

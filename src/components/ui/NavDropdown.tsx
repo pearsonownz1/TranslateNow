@@ -19,12 +19,34 @@ interface NavDropdownProps {
 
 export function NavDropdown({ title, items }: NavDropdownProps) {
   const [open, setOpen] = useState(false);
+  const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpen(false);
+    }, 150); // 150ms delay before closing
+  };
+
+  const handleMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    setOpen(true);
+  };
 
   return (
     <div
       className="relative group"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Button to trigger the dropdown */}
       <button className="flex items-center gap-1 text-base font-medium text-gray-800 hover:text-blue-600 transition"> {/* Updated text size, weight, color, and transition */}
@@ -50,7 +72,11 @@ export function NavDropdown({ title, items }: NavDropdownProps) {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 z-50 mt-3 w-[620px] rounded-2xl bg-white shadow-2xl p-6 grid grid-cols-2 gap-x-6 gap-y-4">
+        <div
+          className="absolute top-full left-1/2 transform -translate-x-1/2 z-50 mt-1 w-[620px] rounded-2xl bg-white shadow-2xl p-6 grid grid-cols-2 gap-x-6 gap-y-4"
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+        >
           {items.map(({ title, description, price, icon: Icon, href }, idx) => { // Destructure href
             const itemContent = (
               // Individual item container with hover effect
