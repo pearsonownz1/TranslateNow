@@ -145,19 +145,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
     // 4. Insert into api_quote_requests table (ASSUMED TABLE NAME)
+    // Build insert object dynamically - only include applicant_name if provided
+    const insertData: any = {
+      api_key_id: apiKeyId,
+      user_id: associatedUserId,
+      country_of_education: country_of_education,
+      college_attended: college_attended,
+      degree_received: degree_received,
+      year_of_graduation: year_of_graduation,
+      notes: notes,
+      status: "pending",
+    };
+
+    // Only include applicant_name if it's provided (required for all clients except hireright)
+    if (applicant_name) {
+      insertData.applicant_name = applicant_name;
+    }
+
     const { data: newQuoteRequest, error: insertError } = await supabaseAdmin
       .from("api_quote_requests") // *** ASSUMPTION: Table name is 'api_quote_requests' ***
-      .insert({
-        api_key_id: apiKeyId,
-        user_id: associatedUserId,
-        country_of_education: country_of_education,
-        college_attended: college_attended,
-        degree_received: degree_received,
-        year_of_graduation: year_of_graduation,
-        notes: notes,
-        status: "pending",
-        applicant_name: applicant_name,
-      })
+      .insert(insertData)
       .select("id") // Select the ID of the newly created record
       .single(); // Expect a single record
 
