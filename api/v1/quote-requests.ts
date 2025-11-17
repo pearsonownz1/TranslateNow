@@ -14,6 +14,7 @@ interface ApiKeyData {
   hashed_key: string;
   revoked: boolean;
   user_id: string;
+  client_name: string;
 }
 
 // Interface for expected request body
@@ -23,7 +24,7 @@ interface QuoteRequestBody {
   degree_received: string;
   year_of_graduation: number;
   notes?: string;
-  applicant_name: string;
+  applicant_name?: string;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -48,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const keyPrefix = apiKey.substring(0, 8);
     const { data: potentialKeys, error: findError } = await supabaseAdmin
       .from("api_keys")
-      .select("id, hashed_key, revoked, user_id") // Select necessary fields
+      .select("id, hashed_key, revoked, user_id, client_name") // Select necessary fields including client_name
       .eq("key_prefix", keyPrefix);
 
     if (findError) {
@@ -81,6 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const apiKeyId = validKeyData.id;
     const associatedUserId = validKeyData.user_id; // User who owns the key
+    const clientName = validKeyData.client_name || "standard"; // Get client name from API key
 
     // 2. Validate Request Body
     const {
@@ -92,13 +94,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       applicant_name,
     } = req.body as QuoteRequestBody;
 
-    // Validate required fields
-    const requiredFields = [
+    // Validate required fields based on client
+    let requiredFields = [
       "country_of_education",
       "college_attended",
       "degree_received",
       "year_of_graduation",
     ];
+
+    // HireRight does not require applicant_name, but other clients do
+    if (clientName !== "hireright") {
+      requiredFields.push("applicant_name");
+    }
+
     const missingFields = requiredFields.filter(
       (field) => !(req.body as any)[field]
     );
