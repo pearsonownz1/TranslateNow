@@ -42,22 +42,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const userId = user.id;
+    const userEmail = user.email;
 
-    // 2. Generate API Key
+    // 2. Determine client_name based on user email
+    let clientName: string | null = null;
+    if (userEmail === 'admin@hireright.com') {
+      clientName = 'hireright';
+    }
+
+    // 3. Generate API Key
     const apiKey = generateApiKey();
     const keyPrefix = apiKey.substring(0, 8); // Store first 8 chars for identification
 
-    // 3. Hash the API Key
+    // 4. Hash the API Key
     const saltRounds = 10; // Standard practice
     const hashedKey = await bcrypt.hash(apiKey, saltRounds);
 
-    // 4. Store Hashed Key in Supabase
+    // 5. Store Hashed Key in Supabase
     const { error: insertError } = await supabaseAdmin
       .from('api_keys') // Your table name
       .insert({
         user_id: userId,
         hashed_key: hashedKey,
         key_prefix: keyPrefix,
+        client_name: clientName,
         // 'revoked' defaults to false, 'created_at' defaults to now()
       });
 
