@@ -43,7 +43,7 @@ const RegisterPage = () => {
             organization: organization, // Store organization in metadata
           },
           // Redirect URL after email confirmation
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/email-verified`,
         },
       });
 
