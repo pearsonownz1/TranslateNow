@@ -11,6 +11,7 @@ const RegisterPage = () => {
   // Updated state for the new form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState(""); // Combined Name field
   const [organization, setOrganization] = useState(""); // Organization field
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +28,17 @@ const RegisterPage = () => {
         variant: "destructive",
         title: "Registration failed",
         description: "Password must be at least 8 characters long.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: "Passwords do not match.",
       });
       setIsLoading(false);
       return;
@@ -162,6 +174,24 @@ const RegisterPage = () => {
                       placeholder="Min 8 Characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="pl-10" // Add padding for icon
+                    />
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <Label htmlFor="confirmPassword"  className="text-sm font-medium text-gray-700">Confirm Password</Label>
+                  <div className="relative mt-1">
+                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Re-enter your password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       minLength={8}
                       className="pl-10" // Add padding for icon
