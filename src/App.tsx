@@ -53,6 +53,8 @@ const LoginPage = lazy(() => import("./components/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./components/auth/RegisterPage"));
 const CallbackPage = lazy(() => import("./components/auth/CallbackPage"));
 const EmailVerifiedPage = lazy(() => import("./components/auth/EmailVerifiedPage"));
+const ForgotPasswordPage = lazy(() => import("./components/auth/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./components/auth/ResetPasswordPage"));
 const QuotePage = lazy(() => import("./components/quote/QuotePage"));
 // New Company/Legal Pages
 const AboutPage = lazy(() => import("./components/company/AboutPage"));
@@ -533,6 +535,8 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/callback" element={<CallbackPage />} />
             <Route path="/email-verified" element={<EmailVerifiedPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/quote" element={<QuotePage />} />
             {/* Added routes for new pages */}
             <Route path="/about" element={<AboutPage />} />
